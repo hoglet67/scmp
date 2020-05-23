@@ -1,0 +1,7 @@
+db/*
+incremental_db/*
+output/*
+output_files/*
+simulation/*
+*.rpt
+simulation/modelsim/msim_transcript
