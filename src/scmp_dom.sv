@@ -30,7 +30,7 @@ output  wire	[3:0]	led_n
 		.addr(addr_l)
 	);
 
-	assign led_n	= ~ addr_l[3:0];
+	assign led_n	= ~ addr_l[11:8];
 
 
 endmodule
