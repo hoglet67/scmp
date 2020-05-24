@@ -30,7 +30,9 @@ output  wire		f2
 	wire	[7:0]	reg8_p_h_q[3:0];
 	wire	[7:0]	reg8_p_l_q[3:0];
 
+	wire		ld_acc;
 	wire	[7:0]	reg8_acc_q;
+	wire		ld_ext;
 	wire	[7:0]	reg8_ext_q;
 
 	//status register (registers)
@@ -205,6 +207,17 @@ output  wire		f2
 				.Q(reg8_D_Q)
 	);
 
+	reg8 reg8_ACC (
+				.clk(clk),
+				.rst_n(rst_n),
+				.D(read_bus_lo),
+				.ctl_ld(ld_acc),
+				.Q(reg8_acc_q)
+	);
+
+	//TODO: ext reg
+	assign reg8_ext_q <= 8'd0;
+
 	generate
 		genvar gi;
 		//instantiate pointer registers in a loop
@@ -308,8 +321,6 @@ output  wire		f2
 
 	assign	ld_status_alu = 1'b0;
 	assign	ld_status_rd_l = 1'b0;
-
-
 
 	always@(posedge clk, negedge rst_n)
 	begin
