@@ -13,7 +13,12 @@ output  wire	[11:0]	addr,
 output	wire	[7:0]	D_o,
 output  wire		f0,
 output  wire		f1,
-output  wire		f2
+output  wire		f2,
+
+output	wire		ADS_n,
+output	wire		RD_n,
+output	wire		WR_n
+
 );
 
 	// indices for selecting a read/load from the high read/write buses
@@ -34,6 +39,8 @@ output  wire		f2
 	wire	[7:0]	reg8_acc_q;
 	wire		ld_ext;
 	wire	[7:0]	reg8_ext_q;
+	wire		ld_op;
+	wire	[7:0]	reg8_op_q;
 
 	//status register (registers)
 	reg		status_cy;
@@ -141,6 +148,18 @@ output  wire		f2
 	wire		alu_cy;
 	wire		alu_ov;
 
+	scmp_microcode microcode (
+		.rst_n(rst_n),
+		.clk(clk),
+		.op(reg8_op_q),
+
+		.ld_op(ld_op),
+
+		.bus_ADS_n(ADS_n),
+		.bus_RD_n(RD_n),
+		.bus_WR_n(WR_n)
+	);
+
 
 	always @(posedge clk, negedge rst_n) begin
 		if (!rst_n) begin
@@ -215,8 +234,17 @@ output  wire		f2
 				.Q(reg8_acc_q)
 	);
 
+	reg8 reg8_OP (
+				.clk(clk),
+				.rst_n(rst_n),
+				.D(D_i),
+				.ctl_ld(ld_op),
+				.Q(reg8_op_q)
+	);
+
+
 	//TODO: ext reg
-	assign reg8_ext_q <= 8'd0;
+	assign reg8_ext_q = 8'd0;
 
 	generate
 		genvar gi;

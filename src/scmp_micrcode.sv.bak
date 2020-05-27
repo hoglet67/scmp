@@ -1,0 +1,55 @@
+
+`define MCODE_BITS	8
+`define OFFS_NEXT	7
+`define SZ_NEXT		8
+
+
+	//goto 0
+`define	NEXTPC_START	`SZ_NEXT'b00000000
+	//add 1
+`define	NEXTPC_NEXT	`SZ_NEXT'b00000001	
+
+
+module scmp_microcode (
+
+input	wire		rst_n,
+input	wire		clk,
+input	wire	[7:0]	op
+
+);
+
+	parameter	MCODE_BITS = 'd8;
+
+	reg	[7:0]	mc_pc;
+	reg	[7:0]	mc_ret;
+
+	//these are "special", others are a signed displacement
+
+	wire	[MCODE_BITS-1:0]	cur;
+
+
+	always@(posedge clk, negedge rst_n) begin
+		if (!rst_n)
+			mc_pc <= 8'd0;
+		else begin
+			if (cur[`OFFS_NEXT:`OFFS_NEXT-`SZ_NEXT+1] == 'd0)
+				mc_pc <= 8'd0;
+			else
+				mc_pc <= mc_pc + cur[`OFFS_NEXT:`OFFS_NEXT-`NEXTSIZE+1];
+		end
+	end
+
+
+	always_comb begin
+
+		case (mc_pc)
+			'd0	: cur <= `NEXTPC_NEXT;
+			'd1	: cur <= `NEXTPC_NEXT;
+			'd2	: cur <= -`SZ_NEXT'd2;
+			default : cur <= `NEXTPC_START;
+		endcase
+	end
+
+
+
+endmodule

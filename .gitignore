@@ -5,3 +5,10 @@ output_files/*
 simulation/*
 *.rpt
 simulation/modelsim/msim_transcript
+asm/test.bin
+asm/test.hlr
+asm/test.ihx
+asm/test.lst
+asm/test.map
+asm/test.rel
+asm/test.vhx
