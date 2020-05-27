@@ -1,5 +1,5 @@
 module mux_oh 
-#(	parameter SIZE = 3, WIDTH = 8)
+#(	parameter SIZE = 5, WIDTH = 8)
 (
 input	wire	[SIZE-1:0]	sel_oh,
 input	wire	[WIDTH-1:0]	D[SIZE-1:0],

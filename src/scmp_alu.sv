@@ -19,22 +19,22 @@ output  reg		Ov_o
 		Ov_o <= Ov_i;
 		Cy_o <= Cy_i;
 		case(op)
-			`SCMP_ALU_ADD	:	
+			`ALU_OP_ADD	:	
 				begin
 				{ Cy_o, res } <= A + B + { {7{1'b0}}, Cy_i };
 				Ov_o <= res[7] ^ A [7];
 				end
-			`SCMP_ALU_RRL	:	
+			`ALU_OP_RRL	:	
 				{ res, Cy_o } <= { Cy_i, A };
-			`SCMP_ALU_OR	:
+			`ALU_OP_OR	:
 				res <= A | B;
-			`SCMP_ALU_AND	:	
+			`ALU_OP_AND	:	
 				res <= A & B;
-			`SCMP_ALU_XOR	:	
+			`ALU_OP_XOR	:	
 				res <= A ^ B;
-			`SCMP_ALU_INC	:	
+			`ALU_OP_INC	:	
 				{ Cy_o, res } <= A + 8'd1;
-			`SCMP_ALU_DEC	:	
+			`ALU_OP_DEC	:	
 				{ Cy_o, res } <= A - 8'd1;
 			default	:
 				res <= A;
