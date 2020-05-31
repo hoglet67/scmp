@@ -1,6 +1,7 @@
 		
-		
+
 		ldi	#10
+		nop
 		st	counter
 loop:		dld	counter
 		jnz	loop

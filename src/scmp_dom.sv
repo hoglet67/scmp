@@ -3,12 +3,15 @@
 
 
 module scmp_dom
-#(	parameter C_SIZE = 26
+#(	parameter C_SIZE = 26,
+	SIM = 0
 )
 (
 input	wire		clk_50m,
 			rst_n,
-output  wire	[3:0]	led_n
+output  wire	[3:0]	led_n,
+output	wire	[3:0]	disp0_sel,
+output  wire	[7:0]	disp0_seg
 );
 
 	reg	[7:0]	memory[`MEM_SIZE-1:0];
@@ -41,11 +44,14 @@ output  wire	[3:0]	led_n
 
 	end
 
+	wire cpu_clk;
+
+	assign cpu_clk = counter[C_SIZE-1];
 
 	scmp cpu
 	(
 		.rst_n(rst_n),
-		.clk(counter[C_SIZE-1]),
+		.clk(cpu_clk),
 		.D_i(cpu_D_i),
 		.sb(cpu_sb_i),
 		.sa(cpu_sa_i),
@@ -60,13 +66,15 @@ output  wire	[3:0]	led_n
 		.WR_n(cpu_WR_n)
 	);
 
-	assign led_n	= ~ cpu_addr[11:8];
 
 
 	//load memory
 
 	initial begin
-		$readmemh("../../asm/test.vhx", memory);
+		if (SIM)
+			$readmemh("../../asm/test.vhx", memory);
+		else
+			$readmemh("../asm/test.vhx", memory);
 
 	end
 
@@ -74,8 +82,34 @@ output  wire	[3:0]	led_n
 		if (!cpu_RD_n)
 			cpu_D_i <= memory[cpu_addr & 'd31];
 		else
-			cpu_D_i <= 8'bxxxxxxxx;
+			cpu_D_i <= 8'b11111111;
 	end
+
+	reg	flag_h;
+	reg	flag_d;
+	reg	flag_i;
+	reg	flag_r;
+
+	always@(posedge cpu_clk, negedge rst_n) begin
+		if (!rst_n)
+			{ flag_h, flag_d, flag_i, flag_r } <= 4'b0000;
+		else if (!cpu_ADS_n)
+			{ flag_h, flag_d, flag_i, flag_r } <= cpu_D_o[7:4];
+	end
+
+
+	//debug interface
+	assign led_n	= ~ { flag_h, flag_d, flag_i, flag_r };
+
+	seg8_4 disp0(
+		.clk(counter[14]),
+		.nrst(rst_n),
+		.number({cpu_addr[7:0], cpu_D_i}),
+		.dot({ flag_h, flag_d, flag_i, flag_r }),
+		.sel(disp0_sel),
+		.seg(disp0_seg)
+	);
+
 
 
 endmodule

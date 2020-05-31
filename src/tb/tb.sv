@@ -16,6 +16,7 @@ module tb ();
 		.led_n(led_n)
 	);
 	defparam dut.C_SIZE = 9;
+	defparam dut.SIM = 1;
 
 	always
 		#10 clk_50m <= ~clk_50m;
@@ -30,7 +31,7 @@ module tb ();
 		#5000	rst_n <= 1'b1;
 
 
-		#100000;
+		#400000;
 
 		$stop;
 

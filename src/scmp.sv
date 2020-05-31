@@ -96,7 +96,11 @@ output	wire		WR_n
 
 		.bus_ADS_n(ADS_n),
 		.bus_RD_n(RD_n),
-		.bus_WR_n(WR_n)
+		.bus_WR_n(WR_n),
+		.bus_F_R(bus_F_R),
+		.bus_F_I(bus_F_I),
+		.bus_F_D(bus_F_D),
+		.bus_F_H(bus_F_H)
 	);
 
 
@@ -272,7 +276,11 @@ output	wire		WR_n
 	assign	f0 = status_f0;
 	assign	f1 = status_f1;
 	assign	f2 = status_f2;
-	assign addr = { reg8_addr_h_q[3:0], reg8_addr_l_q };
+	assign  addr = { reg8_addr_h_q[3:0], reg8_addr_l_q };
+
+	assign	D_o = 	!WR_n 	? reg8_D_Q :
+			!ADS_n	? { bus_F_H, bus_F_D, bus_F_I, bus_F_R, reg8_addr_h_q[7:4] } :
+			{8{1'bz}};
 
 
 endmodule

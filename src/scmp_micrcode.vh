@@ -6,6 +6,22 @@
 //register load signals array indexes and constants
 
 
+`define SZ_COND		1
+
+//==condition masks and xors==
+
+//2 byte opcocde
+`define CONDM_OP2	1'b1
+`define CONDX_OP2	1'b0
+
+`define COND_OP2	`CONDM_OP2, `CONDX_OP2
+
+`define CONDM_NUL	1'b0
+`define CONDX_NUL	1'b0
+
+`define COND_NUL	`CONDM_NUL, `CONDX_NUL
+
+
 
 `define SZ_NEXT		8
 	//goto 0
@@ -14,13 +30,18 @@
 `define	NEXTPC_NEXT	`SZ_NEXT'b00000001	
 
 //	
-`define SZ_BUS		3
-`define	BUS_NUL		3'b000
-`define BUS_ADS		3'b100
-`define BUS_RD		3'b010
-`define BUS_WR		3`b001
+`define SZ_BUS		7
+`define	BUS_NUL		7'b0000000
+`define BUS_FLG_H	7'b1000000
+`define BUS_FLG_D	7'b0100000
+`define BUS_FLG_I	7'b0010000
+`define BUS_FLG_R	7'b0001000
+`define BUS_ADS		7'b0000100
+`define BUS_RD		7'b0000010
+`define BUS_WR		7`b0000001
 
-
+`define BUS_ADSOP	`BUS_ADS | `BUS_FLG_R | `BUS_FLG_I
+`define BUS_ADSRD	`BUS_ADS | `BUS_FLG_R
 
 
 `define 	SZ_LD_H		5
@@ -128,7 +149,7 @@
 `define 	WR_H_RD_L	3'b100
 `define 	WR_H_NUL	`WR_L_RD_H
 
-`define 	SZ_MCODE	`SZ_NEXT + `SZ_BUS + `SZ_LD_L + `SZ_LD_H + `SZ_RD_L + `SZ_RD_H + `SZ_WR_L + `SZ_WR_H + `SZ_ALU_OP
+`define 	SZ_MCODE	`SZ_NEXT + `SZ_COND + `SZ_COND + `SZ_BUS + `SZ_LD_L + `SZ_LD_H + `SZ_RD_L + `SZ_RD_H + `SZ_WR_L + `SZ_WR_H + `SZ_ALU_OP
 
 
 `endif
