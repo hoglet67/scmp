@@ -21,8 +21,6 @@
 
 `define COND_NUL	`CONDM_NUL, `CONDX_NUL
 
-
-
 `define SZ_NEXT		8
 	//goto 0
 `define	NEXTPC_START	`SZ_NEXT'b00000000
