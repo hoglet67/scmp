@@ -1,4 +1,3 @@
-`include "scmp_alu.vh"
 `include "scmp_micrcode.vh"
 
 
@@ -80,6 +79,10 @@ output	wire		WR_n
 	wire					alu_cy;
 	wire					alu_ov;
 
+	wire	bus_F_R;
+	wire	bus_F_I;
+	wire	bus_F_D;
+	wire	bus_F_H;
 
 	scmp_microcode microcode (
 		.rst_n(rst_n),
@@ -263,8 +266,8 @@ output	wire		WR_n
 
 	mux_oh mux_write_bus_hi (
 			.sel_oh(write_bus_hi_src_oh),
-			.D('{	read_bus_lo,
-				incr4_out,
+			.D('{	incr4_out,
+				read_bus_lo,				
 				read_bus_hi
 				}),
 			.Q(write_bus_hi)

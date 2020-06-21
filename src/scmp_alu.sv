@@ -1,7 +1,7 @@
-`include "scmp_alu.vh"
+`include "scmp_micrcode.vh"
 
 module scmp_alu (
-input	wire	[3:0]	op,
+input	wire	[`SZ_ALU_OP-1:0]	op,
 
 input	wire	[7:0]	A,
 input	wire	[7:0]	B,
@@ -19,6 +19,14 @@ output  reg		Ov_o
 		Ov_o <= Ov_i;
 		Cy_o <= Cy_i;
 		case(op)
+			`ALU_OP_AND	:	
+				res <= A & B;
+			`ALU_OP_OR	:
+				res <= A | B;
+			`ALU_OP_XOR	:	
+				res <= A ^ B;
+			`ALU_OP_DA	:
+				res <= 8'bxxxxxxxx;
 			`ALU_OP_ADD	:	
 				begin
 				{ Cy_o, res } <= A + B + { {7{1'b0}}, Cy_i };
@@ -26,12 +34,6 @@ output  reg		Ov_o
 				end
 			`ALU_OP_RRL	:	
 				{ res, Cy_o } <= { Cy_i, A };
-			`ALU_OP_OR	:
-				res <= A | B;
-			`ALU_OP_AND	:	
-				res <= A & B;
-			`ALU_OP_XOR	:	
-				res <= A ^ B;
 			`ALU_OP_INC	:	
 				{ Cy_o, res } <= A + 8'd1;
 			`ALU_OP_DEC	:	

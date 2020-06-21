@@ -12,3 +12,5 @@ asm/test.lst
 asm/test.map
 asm/test.rel
 asm/test.vhx
+perl/test.v
+perl/test.vh

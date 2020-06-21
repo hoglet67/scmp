@@ -78,7 +78,7 @@ output  wire	[7:0]	disp0_seg
 
 	end
 
-	always@(cpu_RD_n) begin
+	always@(negedge cpu_RD_n) begin
 		if (!cpu_RD_n)
 			cpu_D_i <= memory[cpu_addr & 'd31];
 		else
