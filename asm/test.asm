@@ -1,6 +1,7 @@
 		
 
-		ld	5
+		ld	counter
+		ld	counter
 		ldi	#10
 		nop
 		st	counter
@@ -9,7 +10,7 @@ loop:		dld	counter
 here:		jmp	here
 
 
-counter:	.db 0
+counter:	.db 	0xA5
 
 
 testinst:	ld		0

@@ -79,6 +79,7 @@ set_global_assignment -name EDA_TEST_BENCH_NAME tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb -section_id tb
 set_global_assignment -name EDA_TEST_BENCH_FILE src/tb/tb.sv -section_id tb
+set_global_assignment -name SYSTEMVERILOG_FILE src/scmp_microcode_pla.gen.pak.sv
 set_global_assignment -name SYSTEMVERILOG_FILE src/scmp_microcode_oppc.sv
 set_global_assignment -name SYSTEMVERILOG_FILE src/scmp_microcode_pla.gen.sv
 set_global_assignment -name SYSTEMVERILOG_FILE src/seg8_4.sv

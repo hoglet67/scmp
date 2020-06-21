@@ -26,16 +26,19 @@ my $dir_out = shift || usage "No output directory";
 -d $dir_out || usage "$dir_out is not a directory";
 
 my $fn_out_v = "$dir_out/scmp_microcode_pla.gen.sv";
-my $fn_out_vh = "$dir_out/scmp_microcode_pla.gen.vh";
+my $fn_out_pak = "$dir_out/scmp_microcode_pla.gen.pak.sv";
 
 open(my $fh_in, "<", $fn_in) || die "Cannot open \"$fn_in\" for input";
 open(my $fh_out_v, ">", $fn_out_v) || die "Cannot open \"$fn_out_v\" for output";
-open(my $fh_out_vh, ">", $fn_out_vh) || die "Cannot open \"$fn_out_vh\" for output";
+open(my $fh_out_pak, ">", $fn_out_pak) || die "Cannot open \"$fn_out_pak\" for output";
 
 print $fh_out_v "`include \"scmp_microcode_pla.gen.vh\"\n";
+print $fh_out_v "import scmp_microcode_pak::*;\n";
+
+print $fh_out_pak "package scmp_microcode_pak;\n";
 
 header $fh_out_v;
-header $fh_out_vh;
+header $fh_out_pak;
 
 
 my $state = 0; #state machine for reading input 0 = defs, 1 = code
@@ -159,24 +162,9 @@ while (<$fh_in>) {
 
 			print $fh_out_v "module scmp_microcode_pla(\n";
 
-			print $fh_out_v "\tinput\twire\t[`SZ_NEXTPC-1:0]\tpc";
-			for my $s (@secorder) {
-				print $fh_out_v ",\n\toutput\treg\t[`SZ_$s-1:0]\t" . lc($s) ;
-			}
+			print $fh_out_v "\tinput\tMCODE_PC_t\tpc,\n";
+			print $fh_out_v "\toutput\tMCODE_t\tmcode\n";
 			print $fh_out_v ");\n\n";
-
-			print $fh_out_v "reg [`SZ_MCODE-1:0] cur;\n";
-			print $fh_out_v "assign {";
-			my $first=1;
-			for my $s (@secorder) {
-				if ($first) {
-					$first = 0;
-				} else {
-					print $fh_out_v ", ";
-				}
-				print $fh_out_v lc($s);
-			}
-			print $fh_out_v "} = cur;\n";
 
 			print $fh_out_v "always_comb begin\n";
 			print $fh_out_v "\tcase(pc)\n";
@@ -206,7 +194,7 @@ while (<$fh_in>) {
 				$params{$sec} = $lbl;				
 			}
 
-			print $fh_out_v "\t\t${sz_pc}'d${code_ix}:\tcur =\t{";
+			print $fh_out_v "\t\t${sz_pc}'d${code_ix}:\tmcode =\t{";
 			my $first = 1;
 			foreach my $sec (@secorder) {
 				my $curs = $sections{$sec};
@@ -222,13 +210,13 @@ while (<$fh_in>) {
 
 				my $ps = $params{$sec};
 				if ($ps && $ps =~ /^@(\w+)$/) {
-					print $fh_out_v "`UCLBL_$1-$curs->{size}'d${code_ix}";
+					print $fh_out_v "UCLBL_$1-$curs->{size}'d${code_ix}";
 				} else {
 					if (!$ps || !($ps =~ /^UCLBL_/))
 					{
-						print $fh_out_v "`${sec}_";
+						print $fh_out_v "${sec}_";
 					} else {
-						print $fh_out_v "`";
+						print $fh_out_v "";
 					}
 					if ($ps) {
 						print $fh_out_v $ps;
@@ -258,12 +246,13 @@ while (<$fh_in>) {
 	}
 }
 
-print $fh_out_v "\t\tdefault: cur = `SZ_MCODE'd0;";
+print $fh_out_v "\t\tdefault: mcode = 0;";
 print $fh_out_v "\tendcase\n";
 print $fh_out_v "end\n";
 print $fh_out_v "endmodule\n";
 
 
+my $first;
 foreach my $sec (@secorder) {
 
 	my $curs = $sections{$sec};
@@ -273,55 +262,90 @@ foreach my $sec (@secorder) {
 	my $values = $curs->{values};
 	my $named_values = $curs->{named_values};
 
-	print $fh_out_vh "// $sec\n";
+	print $fh_out_pak "// $sec\n";
 
-	print $fh_out_vh "`define\tSZ_$sec\t$curs->{size}\n";
+	#print $fh_out_pak "`define\tSZ_$sec\t$curs->{size}\n";
+	my $szm1 = $curs->{size} - 1;
 
 	if ($type eq "ONEHOT" || $type eq "BITMAP") {
 		if (scalar @$indeces)	{
-			print $fh_out_vh "\n";
+			print $fh_out_pak "typedef enum {\n"
 		}
+		$first = 1;
 		for my $nv (@$indeces) {
-			print $fh_out_vh "`define\t${sec}_IX_$nv->{name}\t$nv->{value}\n";
+			if ($first) {
+				$first = 0;
+			} else {
+				print $fh_out_pak ",\n";
+			}	
+			print $fh_out_pak "\t${sec}_IX_$nv->{name}\t= $nv->{value}";
 		}
-		if (scalar @$values)	{
-			print $fh_out_vh "\n";
+		if (scalar @$indeces)	{
+			print $fh_out_pak "\n} ${sec}_ix_t;\n"
 		}
-		for my $nv (@$values) {			
-			print $fh_out_vh "`define\t${sec}_$nv->{name}\t$nv->{value}\n";
+
+		if ($type eq "ONEHOT") {
+			if (scalar @$values)	{
+				print $fh_out_pak "typedef enum logic [$szm1:0] {\n";
+			} else {
+				print $fh_out_pak "typedef logic [$szm1:0] ${sec}_t;\n";
+			}
+			$first = 1;
+			for my $nv (@$values) {
+				if ($first) {
+					$first = 0;
+				} else {
+					print $fh_out_pak ",\n";
+				}	
+				print $fh_out_pak "\t${sec}_$nv->{name}\t= $nv->{value}";
+			}
+			if (scalar @$values)	{
+				print $fh_out_pak "\n} ${sec}_t;\n"
+			}
+		} else {
+			print $fh_out_pak "typedef logic [$szm1:0] ${sec}_t;\n";
+			for my $nv (@$values) {
+				print $fh_out_pak "const\t${sec}_t\t${sec}_$nv->{name}\t= $nv->{value};\n";
+			}			
 		}
+
 		if (scalar @$named_values) {
-			print $fh_out_vh "\n";	
+			print $fh_out_pak "\n";	
 		}
 		for my $nv (@$named_values) {			
 			my $val2 = $nv->{value};
-			$val2 =~ s/(?<!')\b([a-z]\w+)\b/`${sec}_$1/gi;
-			print $fh_out_vh "`define\t${sec}_$nv->{name}\t$val2\n";
+			$val2 =~ s/(?<!')\b([a-z]\w+)\b/${sec}_$1/gi;
+			print $fh_out_pak "const\t${sec}_t\t${sec}_$nv->{name}\t= $val2;\n";
 		}
 	} elsif ($type eq "SIGNED" || $type eq "INDEX") {
-		if (scalar @$values)	{
-			print $fh_out_vh "\n";
-		}
+		my $szm1 = $curs->{size} - 1;
+		print $fh_out_pak "typedef logic " . (($type eq "SIGNED")?"signed":"") . "[$szm1:0] ${sec}_t;\n";
 		for my $nv (@$values) {			
-			print $fh_out_vh "`define\t${sec}_$nv->{name}\t$nv->{value}\n";
-		}
-		if (scalar @$named_values) {
-			print $fh_out_vh "\n";	
+			print $fh_out_pak "const\t${sec}_t\t${sec}_$nv->{name}\t= $nv->{value};\n";
 		}
 		for my $nv (@$named_values) {			
 			my $val2 = $nv->{value};
-			$val2 =~ s/(?<!')\b([a-z]\w+)\b/`${sec}_$1/gi;
-			print $fh_out_vh "`define\t${sec}_$nv->{name}\t$val2\n";
+			$val2 =~ s/(?<!')\b([a-z]\w+)\b/${sec}_$1/gi;
+			print $fh_out_pak "const\t${sec}_t\t${sec}_$nv->{name}\t= $val2;\n";
 		}		
 	}	
 }
 
-print $fh_out_vh "\n";
-print $fh_out_vh "`define SZ_MCODE ${tot_size}\n";
+print $fh_out_pak "\n";
 
-
-
-print $fh_out_vh "\n";
-foreach my $lbl (keys %code_labels) {
-	print $fh_out_vh "`define UCLBL_$lbl ${sz_pc}'d$code_labels{$lbl}\n";
+print $fh_out_pak "typedef struct packed {\n";
+foreach my $sec (@secorder) {
+	printf $fh_out_pak "\t${sec}_t\t" . lc(${sec}) . ";\n";
 }
+print $fh_out_pak "} MCODE_t;\n";
+
+
+print $fh_out_pak "\n";
+print $fh_out_pak "typedef logic [7:0] MCODE_IX_t;\n";
+foreach my $lbl (keys %code_labels) {
+	print $fh_out_pak "const MCODE_IX_t UCLBL_$lbl = ${sz_pc}'d$code_labels{$lbl};\n";
+}
+
+print $fh_out_pak "typedef logic [7:0] MCODE_PC_t;\n";
+
+print $fh_out_pak "endpackage"
