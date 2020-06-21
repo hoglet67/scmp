@@ -2,12 +2,15 @@
 SECTION:NEXTPC,SIGNED,8
 	NEXT='d1*
 #MAKE SURE THE TWO FOLLOWING SECTION MATCH
-SECTION:CONDM,BITMAP,1
+SECTION:CONDM,BITMAP,4
 	NUL=NUL*
-	OP2='b1
-SECTION:CONDX,BITMAP,1
+	OP2='b1000
+# ADI tests for immediate operations on bits 2:0 of the opcode
+	ADI='b0111	
+SECTION:CONDX,BITMAP,4
 	NUL=NUL*
-	OP2='b0
+	OP2='b0000
+	ADI='b0100
 SECTION:BUS,BITMAP,7
 	NUL=NUL*
 	WR
@@ -97,9 +100,15 @@ FETCH:
 	BUS=ADSRD
 	BUS=RD, LD_L=D
 DECODE:
+#decode step will jump to the instruction see scmp_microcode_oppc.sv
 	CTL=DECODE
+
 # all loads lead to here
 LD:	
+# test for LDI
+	NEXTPC=@LDI, CONDM=ADI, CONDX=ADI
+	BUS=ADSRD
+	BUS=RD, LD_L=D
 # TODO: all are load immediate!
 LDI:
 	WR_L=RD_L, RD_L=D, LD_L=ACC, NEXTPC=UCLBL_FETCH

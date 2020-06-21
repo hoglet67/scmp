@@ -88,7 +88,7 @@ while (<$fh_in>) {
 			if ($def) {
 				$curs->{def} = $name;
 			}
-			push $curs->{named_values}, {
+			push @{$curs->{named_values}}, {
 				name => $name,
 				value => $curs->{size} . '\'d0'
 			};
@@ -110,7 +110,7 @@ while (<$fh_in>) {
 				$val = $curs->{size} . $val;
 			}
 
-			push $curs->{named_values}, {
+			push @{$curs->{named_values}}, {
 				name => $name,
 				value => $val
 			};
@@ -130,16 +130,16 @@ while (<$fh_in>) {
 			}
 
 			if ($type eq "INDEX") {
-				push $curs->{indeces}, {
+				push @{$curs->{indeces}}, {
 					name => $name,
 					value => $ix
 				};
 			} elsif ($type eq "ONEHOT" || $type eq "BITMAP" ) {				
-				push $curs->{indeces}, {
+				push @{$curs->{indeces}}, {
 					name => $name,
 					value => "'d" . $ix
 				};
-				push $curs->{values}, {
+				push @{$curs->{values}}, {
 					name => $name,
 					value => $size . "'b" . "0" x ($size - $ix - 1) . "1" . "0" x $ix
 				};

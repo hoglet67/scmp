@@ -5,15 +5,17 @@
 
 `define	NEXTPC_NEXT	8'd1
 // CONDM
-`define	SZ_CONDM	1
+`define	SZ_CONDM	4
 
-`define	CONDM_NUL	1'd0
-`define	CONDM_OP2	1'b1
+`define	CONDM_NUL	4'd0
+`define	CONDM_OP2	4'b1000
+`define	CONDM_ADI	4'b0111
 // CONDX
-`define	SZ_CONDX	1
+`define	SZ_CONDX	4
 
-`define	CONDX_NUL	1'd0
-`define	CONDX_OP2	1'b0
+`define	CONDX_NUL	4'd0
+`define	CONDX_OP2	4'b0000
+`define	CONDX_ADI	4'b0100
 // BUS
 `define	SZ_BUS	7
 
@@ -164,10 +166,10 @@
 
 `define	CTL_NUL	1'd0
 
-`define SZ_MCODE 58
+`define SZ_MCODE 64
 
-`define UCLBL_RESET 8'd0
-`define UCLBL_LDI 8'd8
-`define UCLBL_FETCH 8'd0
 `define UCLBL_LD 8'd8
+`define UCLBL_FETCH 8'd0
+`define UCLBL_RESET 8'd0
+`define UCLBL_LDI 8'd11
 `define UCLBL_DECODE 8'd7

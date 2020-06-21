@@ -47,12 +47,12 @@ output  wire		bus_F_H
 //	wire	[`SZ_WR_H-1:0]			cur_wr_h;
 //	wire	[`SZ_ALU_OP-1:0]		cur_alu_op;
 
-	wire							cond;	// when this is set the NEXT field is ignored and the next uI is invoked
-	wire							cond_in;
+	wire					cond;	// when this is set the NEXT field is ignored and the next uI is invoked
+	wire	[`SZ_CONDM-1:0]			cond_in;
 
 	wire	[`SZ_NEXTPC-1:0]		op_pc;
 
-	assign cond_in = { op[7] };
+	assign cond_in = { op[7], op[2:0] };
 	assign cond =| ((cond_in ^ cur_cond_xor) & cur_cond_mask);
 
 

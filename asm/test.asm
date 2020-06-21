@@ -1,5 +1,6 @@
 		
 
+		ld	5
 		ldi	#10
 		nop
 		st	counter
