@@ -32,7 +32,6 @@ open(my $fh_in, "<", $fn_in) || die "Cannot open \"$fn_in\" for input";
 open(my $fh_out_v, ">", $fn_out_v) || die "Cannot open \"$fn_out_v\" for output";
 open(my $fh_out_pak, ">", $fn_out_pak) || die "Cannot open \"$fn_out_pak\" for output";
 
-print $fh_out_v "`include \"scmp_microcode_pla.gen.vh\"\n";
 print $fh_out_v "import scmp_microcode_pak::*;\n";
 
 print $fh_out_pak "package scmp_microcode_pak;\n";
@@ -314,7 +313,7 @@ foreach my $sec (@secorder) {
 		}
 		for my $nv (@$named_values) {			
 			my $val2 = $nv->{value};
-			$val2 =~ s/(?<!')\b([a-z]\w+)\b/${sec}_$1/gi;
+			$val2 =~ s/(?<!')\b([a-z]\w*)\b/${sec}_$1/gi;
 			print $fh_out_pak "const\t${sec}_t\t${sec}_$nv->{name}\t= $val2;\n";
 		}
 	} elsif ($type eq "SIGNED" || $type eq "INDEX") {
