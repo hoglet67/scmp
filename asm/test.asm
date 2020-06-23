@@ -1,10 +1,11 @@
-		
-
+blank:		.db	0		
 		ld	counter
 		ld	counter
 		ldi	#10
-		nop
 		st	counter
+		st	blank
+		nop
+		ld	counter
 loop:		dld	counter
 		jnz	loop
 here:		jmp	here

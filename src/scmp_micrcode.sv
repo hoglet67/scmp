@@ -5,6 +5,8 @@ module scmp_microcode (
 input	logic		rst_n,
 input	logic		clk,
 input	logic[7:0]	op,
+input	logic		zer,
+input	logic		neg,
 
 output	LD_L_t		ld_l,
 output	LD_H_t		ld_h,
@@ -33,8 +35,18 @@ output  logic		bus_F_H
 	wire			cond;	// when this is set the NEXT field is ignored and the next uI is invoked
 	COND_MASK_t		cond_in;
 	NEXTPC_t		op_pc;
+	logic			c_jmp;
 
-	assign cond_in = { op[7], op[2:0] };
+	//jump logic gives a 1 to not return to fetch on jmp, jz, jnz, jp
+
+	assign	c_jmp = 
+		(op[3:2] == 2'b01)?~neg:		//jp i.e. !neg
+		(op[3:2] == 2'b10)?zer:		//jz
+		(op[3:2] == 2'b11)?~zer:
+		1'b1;				//always jmp
+				
+
+	assign cond_in = { op[7], op[2:0], c_jmp };
 	assign cond =| ((cond_in ^ mcode.cond_xor) & mcode.cond_mask);
 
 

@@ -5,17 +5,19 @@ package scmp_microcode_pak;
 typedef logic signed[7:0] NEXTPC_t;
 const	NEXTPC_t	NEXTPC_NEXT	= 8'd1;
 // COND_MASK
-typedef logic [3:0] COND_MASK_t;
+typedef logic [4:0] COND_MASK_t;
 
-const	COND_MASK_t	COND_MASK_NUL	= 4'd0;
-const	COND_MASK_t	COND_MASK_OP2	= 4'b1000;
-const	COND_MASK_t	COND_MASK_ADI	= 4'b0111;
+const	COND_MASK_t	COND_MASK_NUL	= 5'd0;
+const	COND_MASK_t	COND_MASK_OP2	= 5'b10000;
+const	COND_MASK_t	COND_MASK_ADI	= 5'b01110;
+const	COND_MASK_t	COND_MASK_JMP	= 5'b00001;
 // COND_XOR
-typedef logic [3:0] COND_XOR_t;
+typedef logic [4:0] COND_XOR_t;
 
-const	COND_XOR_t	COND_XOR_NUL	= 4'd0;
-const	COND_XOR_t	COND_XOR_OP2	= 4'b0000;
-const	COND_XOR_t	COND_XOR_ADI	= 4'b0100;
+const	COND_XOR_t	COND_XOR_NUL	= 5'd0;
+const	COND_XOR_t	COND_XOR_OP2	= 5'b00000;
+const	COND_XOR_t	COND_XOR_ADI	= 5'b01000;
+const	COND_XOR_t	COND_XOR_JMP	= 5'b00000;
 // BUS
 typedef enum {
 	BUS_IX_WR	= 'd0,
@@ -38,6 +40,7 @@ const	BUS_t	BUS_FLG_H	= 7'b1000000;
 const	BUS_t	BUS_NUL	= 7'd0;
 const	BUS_t	BUS_ADSOP	= BUS_ADS|BUS_FLG_R|BUS_FLG_I;
 const	BUS_t	BUS_ADSRD	= BUS_ADS|BUS_FLG_R;
+const	BUS_t	BUS_ADSWR	= BUS_ADS;
 // LD_L
 typedef enum {
 	LD_L_IX_P0	= 'd0,
@@ -69,6 +72,7 @@ const	LD_L_t	LD_L_EA	= 12'b100000000000;
 
 const	LD_L_t	LD_L_NUL	= 12'd0;
 const	LD_L_t	LD_L_ADDR_PC	= LD_L_P0|LD_L_ADDR;
+const	LD_L_t	LD_L_D_ACC	= LD_L_D|LD_L_ACC;
 // LD_H
 typedef enum {
 	LD_H_IX_P0	= 'd0,
@@ -193,10 +197,14 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_FETCH = 8'd0;
+const MCODE_IX_t UCLBL_JMP = 8'd28;
+const MCODE_IX_t UCLBL_ST = 8'd13;
 const MCODE_IX_t UCLBL_RESET = 8'd0;
-const MCODE_IX_t UCLBL_DECODE = 8'd7;
+const MCODE_IX_t UCLBL_FETCH = 8'd0;
+const MCODE_IX_t UCLBL_ILD = 8'd22;
+const MCODE_IX_t UCLBL_DLD = 8'd16;
 const MCODE_IX_t UCLBL_LDI = 8'd12;
+const MCODE_IX_t UCLBL_DECODE = 8'd7;
 const MCODE_IX_t UCLBL_LD = 8'd8;
 typedef logic [7:0] MCODE_PC_t;
 endpackage

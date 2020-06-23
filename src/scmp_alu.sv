@@ -10,7 +10,8 @@ input	logic		Ov_i,
 
 output	logic	[7:0]	res,
 output	logic		Cy_o,
-output  logic		Ov_o
+output  logic		Ov_o,
+output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was negative i.e. EA calc
 	);
 
 	
@@ -18,6 +19,7 @@ output  logic		Ov_o
 
 		Ov_o <= Ov_i;
 		Cy_o <= Cy_i;
+		Cy_sgn_o <= 1'b0;
 		case(op)
 			ALU_OP_AND	:	
 				res <= A & B;
@@ -31,6 +33,7 @@ output  logic		Ov_o
 				begin
 				{ Cy_o, res } <= A + B + { {7{1'b0}}, Cy_i };
 				Ov_o <= res[7] ^ A [7];
+				Cy_sgn_o <= B[7];
 				end
 			ALU_OP_RRL	:	
 				{ res, Cy_o } <= { Cy_i, A };

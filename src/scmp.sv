@@ -78,6 +78,7 @@ output	logic		WR_n
 	logic	[7:0]				alu_Q;
 	logic					alu_cy;
 	logic					alu_ov;
+	logic					alu_cy_sgn;
 
 	logic	bus_F_R;
 	logic	bus_F_I;
@@ -91,6 +92,8 @@ output	logic		WR_n
 		.rst_n(rst_n),
 		.clk(clk),
 		.op(reg8_op_q),
+		.zer(reg8_acc_q == 8'd0),
+		.neg(reg8_acc_q[7]),
 
 		.ld_l(ld_l),
 		.ld_h(ld_h),
@@ -139,7 +142,7 @@ output	logic		WR_n
 	reg8 reg8_D (
 				.clk(clk),
 				.rst_n(rst_n),
-				.D(D_i),
+				.D((RD_n==1'b0)?D_i:write_bus_lo),
 				.ctl_ld(ld_l[LD_L_IX_D]),
 				.Q(reg8_D_Q)
 	);
@@ -147,7 +150,7 @@ output	logic		WR_n
 	reg8 reg8_ACC (
 				.clk(clk),
 				.rst_n(rst_n),
-				.D(read_bus_lo),
+				.D(write_bus_lo),
 				.ctl_ld(ld_l[LD_L_IX_ACC]),
 				.Q(reg8_acc_q)
 	);
@@ -220,7 +223,9 @@ output	logic		WR_n
 
 	//incrementer
 	logic [3:0]	incr4_lo;
-	assign incr4_lo = (read_bus_hi[3:0] + { {3{1'b0}}, alu_cy }); 
+	assign incr4_lo = (alu_cy_sgn)
+		?(read_bus_hi[3:0] - { {3{1'b0}}, ~alu_cy })
+		:(read_bus_hi[3:0] + { {3{1'b0}}, alu_cy }); 
 	assign incr4_out = { read_bus_hi[7:4], incr4_lo };
 
 
@@ -232,7 +237,8 @@ output	logic		WR_n
 		.Ov_i(status_ov),
 		.res(alu_Q),
 		.Cy_o(alu_cy),
-		.Ov_o(alu_ov)
+		.Ov_o(alu_ov),
+		.Cy_sgn_o(alu_cy_sgn)
 	);
 
 
@@ -310,6 +316,7 @@ output	logic		WR_n
 	assign	f1 = status_f1;
 	assign	f2 = status_f2;
 	assign  addr = { reg8_addr_h_q[3:0], reg8_addr_l_q };
+
 
 	assign	D_o = 	!WR_n 	? reg8_D_Q :
 			!ADS_n	? { bus_F_H, bus_F_D, bus_F_I, bus_F_R, reg8_addr_h_q[7:4] } :
