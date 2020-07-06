@@ -199,14 +199,16 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_ST = 8'd13;
-const MCODE_IX_t UCLBL_DECODE = 8'd7;
 const MCODE_IX_t UCLBL_LD = 8'd8;
-const MCODE_IX_t UCLBL_JMP = 8'd28;
-const MCODE_IX_t UCLBL_ILD = 8'd22;
-const MCODE_IX_t UCLBL_RESET = 8'd0;
-const MCODE_IX_t UCLBL_DLD = 8'd16;
+const MCODE_IX_t UCLBL_XAE = 8'd31;
+const MCODE_IX_t UCLBL_LDE = 8'd13;
 const MCODE_IX_t UCLBL_LDI = 8'd12;
+const MCODE_IX_t UCLBL_DLD = 8'd17;
+const MCODE_IX_t UCLBL_RESET = 8'd0;
+const MCODE_IX_t UCLBL_ILD = 8'd23;
+const MCODE_IX_t UCLBL_JMP = 8'd29;
+const MCODE_IX_t UCLBL_DECODE = 8'd7;
+const MCODE_IX_t UCLBL_ST = 8'd14;
 const MCODE_IX_t UCLBL_FETCH = 8'd0;
 typedef logic [7:0] MCODE_PC_t;
 endpackage

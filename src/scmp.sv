@@ -155,6 +155,15 @@ output	logic		WR_n
 				.Q(reg8_acc_q)
 	);
 
+	reg8 reg8_EXT (
+				.clk(clk),
+				.rst_n(rst_n),
+				.D(write_bus_lo),
+				.ctl_ld(ld_l[LD_L_IX_EXT]),
+				.Q(reg8_ext_q)
+	);
+
+
 	reg8 reg8_OP (
 				.clk(clk),
 				.rst_n(rst_n),
@@ -164,8 +173,6 @@ output	logic		WR_n
 	);
 
 
-	//TODO: ext reg
-	assign reg8_ext_q = 8'd0;
 
 	generate
 		genvar gi;
