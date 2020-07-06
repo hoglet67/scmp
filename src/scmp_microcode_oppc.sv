@@ -8,10 +8,10 @@ output	NEXTPC_t		op_pc
 	always_comb begin
 		if (op[7:3] == 5'b11001 & op[2:0] != 3'b100)
 			op_pc <= UCLBL_ST;
-		else if (op[7:6] == 5'b11)
-			op_pc <= UCLBL_LD;
-		else if (op[7:6] == 5'b01 && op[2:0] == 3'b000)
-			op_pc <= UCLBL_LD;
+		else if (op[7:6] == 2'b11)
+			op_pc <= UCLBL_LD;	//2 byte load/logical instructions
+		else if (op[7:6] == 2'b01 && op[2:0] == 3'b000)
+			op_pc <= UCLBL_LD;	//1 byte load/logical instructions with E
 		else if (op[7:2] == 6'b101010)
 			op_pc <= UCLBL_ILD;
 		else if (op[7:2] == 6'b101110)

@@ -109,7 +109,7 @@ output  wire	[7:0]	disp0_seg
 	seg8_4 disp0(
 		.clk(counter[14]),
 		.nrst(rst_n),
-		.number({cpu_addr[7:0], cpu_D_i}),
+		.number({cpu_addr[7:0], (cpu_WR_n)?cpu_D_i:cpu_D_o}),
 		.dot({ flag_h, flag_d, flag_i, flag_r }),
 		.sel(disp0_sel),
 		.seg(disp0_seg)
