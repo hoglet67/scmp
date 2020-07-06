@@ -4,6 +4,8 @@ blank:		.db	0
 		ldi	#0xA8
 		ore
 		st	bob
+		ldi	#0x80
+		adi	#0x80
 here:		jmp	here
 
 bob:		.db	0

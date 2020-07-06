@@ -73,6 +73,7 @@ const	LD_L_t	LD_L_EA	= 12'b100000000000;
 const	LD_L_t	LD_L_NUL	= 12'd0;
 const	LD_L_t	LD_L_ADDR_PC	= LD_L_P0|LD_L_ADDR;
 const	LD_L_t	LD_L_D_ACC	= LD_L_D|LD_L_ACC;
+const	LD_L_t	LD_L_ACC_STAT_ALU	= LD_L_ACC|LD_L_ST_ALU;
 // LD_H
 typedef enum {
 	LD_H_IX_P0	= 'd0,
@@ -172,6 +173,7 @@ const	ALU_OP_t	ALU_OP_RR	= 4'b1010;
 const	ALU_OP_t	ALU_OP_RRL	= 4'b1011;
 const	ALU_OP_t	ALU_OP_INC	= 4'b1100;
 const	ALU_OP_t	ALU_OP_DEC	= 4'b1101;
+const	ALU_OP_t	ALU_OP_ADD_NOCARRYIN	= 4'b1110;
 // CTL
 typedef enum {
 	CTL_IX_DECODE	= 'd0,
@@ -199,16 +201,16 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_LD = 8'd8;
-const MCODE_IX_t UCLBL_XAE = 8'd31;
-const MCODE_IX_t UCLBL_LDE = 8'd13;
-const MCODE_IX_t UCLBL_LDI = 8'd12;
-const MCODE_IX_t UCLBL_DLD = 8'd17;
-const MCODE_IX_t UCLBL_RESET = 8'd0;
 const MCODE_IX_t UCLBL_ILD = 8'd23;
-const MCODE_IX_t UCLBL_JMP = 8'd29;
+const MCODE_IX_t UCLBL_LDE = 8'd13;
 const MCODE_IX_t UCLBL_DECODE = 8'd7;
 const MCODE_IX_t UCLBL_ST = 8'd14;
+const MCODE_IX_t UCLBL_DLD = 8'd17;
+const MCODE_IX_t UCLBL_LD = 8'd8;
+const MCODE_IX_t UCLBL_RESET = 8'd0;
+const MCODE_IX_t UCLBL_LDI = 8'd12;
 const MCODE_IX_t UCLBL_FETCH = 8'd0;
+const MCODE_IX_t UCLBL_JMP = 8'd29;
+const MCODE_IX_t UCLBL_XAE = 8'd31;
 typedef logic [7:0] MCODE_PC_t;
 endpackage
