@@ -41,6 +41,9 @@ output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was n
 				{ Cy_o, res } <= A + 8'd1;
 			ALU_OP_DEC	:	
 				{ Cy_o, res } <= A - 8'd1;
+			ALU_OP_NUL	:
+				res <= B;
+
 			default	:
 				res <= A;
 		endcase

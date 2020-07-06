@@ -1,5 +1,10 @@
 blank:		.db	0		
+		ldi	#0x44
+		st	pok
 		ld	counter
+		ani	#0xAA	
+		or	pok
+		adi	#0x31
 		ld	counter
 		ldi	#10
 		st	counter
@@ -12,6 +17,7 @@ here:		jmp	here
 
 
 counter:	.db 	0xA5
+pok:		.db	0
 
 
 testinst:	ld		0

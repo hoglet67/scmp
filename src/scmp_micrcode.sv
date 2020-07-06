@@ -84,6 +84,6 @@ output  logic		bus_F_H
 	assign rd_h = mcode.rd_h;
 	assign wr_l = mcode.wr_l;
 	assign wr_h = mcode.wr_h;
-	assign alu_op = mcode.alu_op;
+	assign alu_op = (mcode.ctl[CTL_IX_LOGICOP])?{1'b0,op[5:3]}:mcode.alu_op;
 
 endmodule
