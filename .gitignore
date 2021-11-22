@@ -14,3 +14,5 @@ asm/test.rel
 asm/test.vhx
 perl/test.v
 perl/test.vh
+*.sublime-project
+*.sublime-workspace
