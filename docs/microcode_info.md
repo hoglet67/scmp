@@ -62,11 +62,17 @@ in this section combined using verilog operators.
 
 ### Definitions End
 
-	CODESTART
+	CODESTART=<PC WIDTH>
 
 Marks the end of the definitions section and the start of the microcode section.
 
 A set of type definitions for each section and constants for each value/named value
 will be emitted to the scmp_microcode_pla.gen.pak.sc
+
+### Special Sections
+
+## NEXTPC
+
+There must be a section called "NEXTPC" this will be used to encode 
 
 ## MICROCODE

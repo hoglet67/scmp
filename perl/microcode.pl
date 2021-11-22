@@ -42,7 +42,6 @@ my $code_ix = 0;
 my %code_labels = ();
 my $tot_size = 0;
 
-my $sec_pc;
 my $sz_pc;
 
 my @microcode=();
@@ -77,7 +76,7 @@ while (<$fh_in>) {
 			push @secorder, $cur_section;
 			$tot_size += $cur_sec_size;
 
-		} elsif ($l =~ /^\s*(\w+)=NUL(\*)?/) {
+		} elsif ($l =~ /^\s+(\w+)=NUL(\*)?/) {
 			#special case NUL
 			my $name = $1;
 			my $def = $2;
@@ -92,7 +91,7 @@ while (<$fh_in>) {
 				name => $name,
 				value => $curs->{size} . '\'d0'
 			};
-		} elsif ($l =~ /^\s*(\w+)=([^*]+)(\*)?/i) {
+		} elsif ($l =~ /^\s+(\w+)=([^*]+)(\*)?/i) {
 			#named value
 			my $name = $1;
 			my $val = $2;
@@ -150,12 +149,10 @@ while (<$fh_in>) {
 			$curs->{maxix} = $ix + 1;
 
 
-		} elsif ($l =~ /^\s*CODESTART\s*$/) {
+		} elsif ($l =~ /^\s*CODESTART=(\d+)\s*$/) {
 			$state = 1;	
 
-			$sec_pc = $sections{"NEXTPC"};
-			$sec_pc || die "expecting section NEXTPC";
-			$sz_pc = $sec_pc->{size};
+			$sz_pc = $1;
 		
 		} else {
 			die "unrecognized line in definitions section : $l";
@@ -399,7 +396,7 @@ foreach my $lbl (keys %code_labels) {
 	print $fh_out_pak "const MCODE_IX_t UCLBL_$lbl = ${sz_pc}'d$code_labels{$lbl};\n";
 }
 
-print $fh_out_pak "typedef logic [7:0] MCODE_PC_t;\n";
+printf $fh_out_pak "typedef logic [%d:0] MCODE_PC_t;\n", $sz_pc-1;
 
 print $fh_out_pak "endpackage";
 
