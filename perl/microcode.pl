@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use POSIX;
+
+my $TABWIDTH=8;
 
 sub usage($) {
 	my ($msg) = @_;
@@ -29,15 +32,6 @@ my $fn_out_v = "$dir_out/scmp_microcode_pla.gen.sv";
 my $fn_out_pak = "$dir_out/scmp_microcode_pla.gen.pak.sv";
 
 open(my $fh_in, "<", $fn_in) || die "Cannot open \"$fn_in\" for input";
-open(my $fh_out_v, ">", $fn_out_v) || die "Cannot open \"$fn_out_v\" for output";
-open(my $fh_out_pak, ">", $fn_out_pak) || die "Cannot open \"$fn_out_pak\" for output";
-
-print $fh_out_v "import scmp_microcode_pak::*;\n";
-
-print $fh_out_pak "package scmp_microcode_pak;\n";
-
-header $fh_out_v;
-header $fh_out_pak;
 
 
 my $state = 0; #state machine for reading input 0 = defs, 1 = code
@@ -51,13 +45,17 @@ my $tot_size = 0;
 my $sec_pc;
 my $sz_pc;
 
+my @microcode=();
+
 while (<$fh_in>) {
 	my $l = $_;
 	$l =~ s/[\s|\r]+$//;
+	$l =~ s/\s*#.*//;
 
 	if ($l =~ /^\s*#/ || $l =~ /^\s*$/) {
 		#ignore it's a comment or blank
 	} elsif ($state == 0) {
+		# definitions
 		if ($l =~ /^SECTION:(\w+),(BITMAP|ONEHOT|INDEX|SIGNED),(\d+)/) {
 			$cur_section = $1;
 			my $cur_sec_type = $2;
@@ -158,25 +156,17 @@ while (<$fh_in>) {
 			$sec_pc = $sections{"NEXTPC"};
 			$sec_pc || die "expecting section NEXTPC";
 			$sz_pc = $sec_pc->{size};
-
-			print $fh_out_v "module scmp_microcode_pla(\n";
-
-			print $fh_out_v "\tinput\tMCODE_PC_t\tpc,\n";
-			print $fh_out_v "\toutput\tMCODE_t\tmcode\n";
-			print $fh_out_v ");\n\n";
-
-			print $fh_out_v "always_comb begin\n";
-			print $fh_out_v "\tcase(pc)\n";
 		
 		} else {
 			die "unrecognized line in definitions section : $l";
 		}
 	} elsif ($state == 1) {
-
+		# microcode
 
 
 		if ($l =~ /^\s*(\w+):\s*$/) {
 			$code_labels{$1} = $code_ix;
+			push @microcode, {type=>"COMMENT", comment=>"$1 = $code_ix"};
 		} elsif ($l =~ /^\s*(\s*\w+\s*=\s*@?\w+)(\s*,\s*(\s*\w+=\s*@?\w+))*\s*$/) {
 			my @parms2 = split(/\s*,\s*/, $l);
 
@@ -193,39 +183,35 @@ while (<$fh_in>) {
 				$params{$sec} = $lbl;				
 			}
 
-			print $fh_out_v "\t\t${sz_pc}'d${code_ix}:\tmcode =\t{";
-			my $first = 1;
+			my @mc_vals = ();
 			foreach my $sec (@secorder) {
 				my $curs = $sections{$sec};
 
 				$curs || die "missing section $sec";
 
-				if (!$first) {
-					print $fh_out_v ",\t";
-				} else {
-					print $fh_out_v "\t";
-					$first = 0;
-				}
 
 				my $ps = $params{$sec};
 				if ($ps && $ps =~ /^@(\w+)$/) {
-					print $fh_out_v "UCLBL_$1-$curs->{size}'d${code_ix}";
+					push @mc_vals, "UCLBL_$1-$curs->{size}'d$code_ix";
 				} else {
+					my $v;
 					if (!$ps || !($ps =~ /^UCLBL_/))
 					{
-						print $fh_out_v "${sec}_";
-					} else {
-						print $fh_out_v "";
-					}
+						$v = "${sec}_";
+					} 
+
 					if ($ps) {
-						print $fh_out_v $ps;
+						$v .= $ps;
 					} elsif (exists $curs->{def}) {
-						print $fh_out_v $curs->{def};
+						$v .= $curs->{def};
 					} else {
 						die "No default value for $sec and none supplied in this line";
-					}		
-				}		
+					}	
+					push @mc_vals, $v;	
+				}	
 			}
+			push @microcode, {type=>"MICROCODE", code_ix=>$code_ix, vals=>\@mc_vals};	
+			$code_ix++;
 
 			foreach my $pk (keys %params) {
 				if (!exists $sections{$pk}) {
@@ -233,8 +219,6 @@ while (<$fh_in>) {
 				}
 			}
 
-			print $fh_out_v "};\n";
-			$code_ix++;
 
 		} else {
 			die "unrecognized line in code section : $l";
@@ -245,11 +229,81 @@ while (<$fh_in>) {
 	}
 }
 
+
+
+open(my $fh_out_v, ">", $fn_out_v) || die "Cannot open \"$fn_out_v\" for output";
+
+print $fh_out_v "import scmp_microcode_pak::*;\n";
+
+header $fh_out_v;
+
+print $fh_out_v "module scmp_microcode_pla(\n";
+print $fh_out_v "\tinput\tMCODE_PC_t\tpc,\n";
+print $fh_out_v "\toutput\tMCODE_t\tmcode\n";
+print $fh_out_v ");\n\n";
+
+print $fh_out_v "always_comb begin\n";
+print $fh_out_v "\tcase(pc)\n";
+
+print $fh_out_v "\t//\t\t\t\t";
+
+#calculate the maximum length of each section's values/name
+for my $i (0 .. $#secorder) {
+	my $sec = @secorder[$i];
+	my $curs = $sections{$sec};
+	my $maxl = length($sec);
+	foreach my $m (@microcode) {
+		my $ll = length(@{$m->{vals}}[$i]);
+		if ($ll > $maxl) {
+			$maxl = $ll;
+		}
+	}
+
+	# add one for space between labels
+	$maxl++; 
+
+	$curs->{textw} = $maxl;
+
+	print $fh_out_v $sec;
+	print $fh_out_v pad(length($sec), $maxl);
+}
+
+foreach my $m (@microcode) {
+	if ($m->{type} eq "COMMENT") {
+		print $fh_out_v "\t// $m->{comment}\n";
+	} elsif ($m->{type} eq "MICROCODE") {
+		print $fh_out_v "\t\t${sz_pc}'d$m->{code_ix}:\tmcode =\t{\t";
+		
+		my $ls = $#{$m->{vals}};
+		for my $i (0 .. $ls) {
+			my $sec = @secorder[$i];
+			my $curs = $sections{$sec};
+			my $mcv = @{$m->{vals}}[$i];
+
+			print $fh_out_v $mcv;
+			if ($i == $ls) {
+				print $fh_out_v pad(length($mcv), $curs->{textw});
+			} else {
+				print $fh_out_v "," . pad(length($mcv)+1, $curs->{textw});
+			}
+		}
+
+		print $fh_out_v "};\n";
+
+	} else {
+		die "Unexpected type";
+	}
+}
+
 print $fh_out_v "\t\tdefault: mcode = 0;";
 print $fh_out_v "\tendcase\n";
 print $fh_out_v "end\n";
 print $fh_out_v "endmodule\n";
 
+
+open(my $fh_out_pak, ">", $fn_out_pak) || die "Cannot open \"$fn_out_pak\" for output";
+print $fh_out_pak "package scmp_microcode_pak;\n";
+header $fh_out_pak;
 
 my $first;
 foreach my $sec (@secorder) {
@@ -347,4 +401,15 @@ foreach my $lbl (keys %code_labels) {
 
 print $fh_out_pak "typedef logic [7:0] MCODE_PC_t;\n";
 
-print $fh_out_pak "endpackage"
+print $fh_out_pak "endpackage";
+
+# output enough tabs and spaces to pad a string of length $l to $w, $TABWIDTH defines tab size
+# NOTE: $w2 will be rounded up to next TAB stop
+sub pad($$) {	
+	my ($l, $w) = @_;
+	my $w2 = $TABWIDTH * ceil($w/$TABWIDTH);
+
+	$w2 -= $l;
+
+	return "\t" x ceil($w2/$TABWIDTH);
+}

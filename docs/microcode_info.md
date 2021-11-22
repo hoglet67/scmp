@@ -31,13 +31,42 @@ TYPE can be one of
 
 WIDTH is the binary width of the section
 
+
 After a SECTION tag there follows a set of value definitions
 
 ### Value definition:
 
-	\<NAME\>[=\<VALUE\>|NUL][\*]
+	<NAME>[=<NUM>|NUL][*]
 
 Each value will be output as a constant named:
 
-	\<SECTION_NAME\>_\<VALUE_NAME\>
+	<SECTION_NAME>_<VALUE_NAME>
 
+A single value in each section may be marked with an asterisk(\*) to indicate
+that this is the default value for microcode lines that contain no setting for
+this section. If no line in a section is marked thus the first value will be
+used.
+
+In ONEHOT and BITMAP sections values without a specified NUM will be given
+a value based on their order in the file. Each value will be assigned a value
+starting b'1 and shifting left one for each value i.e. the second value will
+be b'10
+
+In INDEX sections values without a specified NUM will be given the next
+highest value
+
+Where \<NUM\> is specified this is treated as a "named value" it can either be
+a numeric value starting with apostrophe(') or a value based on other values
+in this section combined using verilog operators.
+
+
+### Definitions End
+
+	CODESTART
+
+Marks the end of the definitions section and the start of the microcode section.
+
+A set of type definitions for each section and constants for each value/named value
+will be emitted to the scmp_microcode_pla.gen.pak.sc
+
+## MICROCODE
