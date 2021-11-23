@@ -51,17 +51,26 @@ output  logic		bus_F_H
 
 
 	always@(posedge clk, negedge rst_n) begin
-		if (!rst_n)
+		if (!rst_n) 
+		begin
 			mc_pc <= 8'd0;
-		else begin
+			mc_ret <= 8'd0;
+		end
+		else
+		begin			
 			if (mcode.ctl[CTL_IX_DECODE]) 
 				mc_pc <= op_pc;
+			else if (mcode.ctl[CTL_IX_RET]) 
+				mc_pc <= mc_ret;
 			else if (cond) 
 				mc_pc <= mc_pc + 8'd1;
 			else if (mcode.nextpc == 'd0)
 				mc_pc <= 'd0;
 			else
 				mc_pc <= mc_pc + mcode.nextpc;
+
+			if (mcode.ctl[CTL_IX_CALL])
+				mc_ret <= mc_pc + 8'd1;
 		end
 	end
 

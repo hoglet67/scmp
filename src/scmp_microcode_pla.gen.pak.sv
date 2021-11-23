@@ -178,13 +178,17 @@ const	ALU_OP_t	ALU_OP_ADD_NOCARRYIN	= 4'b1110;
 // CTL
 typedef enum {
 	CTL_IX_DECODE	= 'd0,
-	CTL_IX_LOGICOP	= 'd1
+	CTL_IX_LOGICOP	= 'd1,
+	CTL_IX_RET	= 'd2,
+	CTL_IX_CALL	= 'd3
 } CTL_ix_t;
-typedef logic [1:0] CTL_t;
-const	CTL_t	CTL_DECODE	= 2'b01;
-const	CTL_t	CTL_LOGICOP	= 2'b10;
+typedef logic [3:0] CTL_t;
+const	CTL_t	CTL_DECODE	= 4'b0001;
+const	CTL_t	CTL_LOGICOP	= 4'b0010;
+const	CTL_t	CTL_RET	= 4'b0100;
+const	CTL_t	CTL_CALL	= 4'b1000;
 
-const	CTL_t	CTL_NUL	= 2'd0;
+const	CTL_t	CTL_NUL	= 4'd0;
 
 typedef struct packed {
 	NEXTPC_t	nextpc;
@@ -202,16 +206,17 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_ILD = 7'd23;
-const MCODE_IX_t UCLBL_JMP = 7'd29;
-const MCODE_IX_t UCLBL_RESET = 7'd0;
-const MCODE_IX_t UCLBL_LDE = 7'd13;
-const MCODE_IX_t UCLBL_LD = 7'd8;
-const MCODE_IX_t UCLBL_XAE = 7'd31;
-const MCODE_IX_t UCLBL_DLD = 7'd17;
-const MCODE_IX_t UCLBL_LDI = 7'd12;
-const MCODE_IX_t UCLBL_FETCH = 7'd0;
-const MCODE_IX_t UCLBL_ST = 7'd14;
+const MCODE_IX_t UCLBL_JMP = 7'd27;
+const MCODE_IX_t UCLBL_ST = 7'd12;
 const MCODE_IX_t UCLBL_DECODE = 7'd7;
+const MCODE_IX_t UCLBL_XAE = 7'd29;
+const MCODE_IX_t UCLBL_LD = 7'd8;
+const MCODE_IX_t UCLBL_RESET = 7'd0;
+const MCODE_IX_t UCLBL_LDE = 7'd11;
+const MCODE_IX_t UCLBL_FETCH = 7'd0;
+const MCODE_IX_t UCLBL_ILD = 7'd21;
+const MCODE_IX_t UCLBL_DLD = 7'd15;
+const MCODE_IX_t UCLBL_LDI = 7'd10;
+const MCODE_IX_t UCLBL_EA = 7'd32;
 typedef logic [6:0] MCODE_PC_t;
 endpackage

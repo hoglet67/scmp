@@ -26,7 +26,12 @@
 #
 
 
-# NEXTPC is usally 
+# NEXTPC is usally a relative step to the next line. the microcode can jump 
+# to other lines by setting this section attribute to a value other than 1
+# a value of 'd0 is special and will alway force a jump to the first line of 
+# micrcode
+# NOTE: if a line of microcode is "skipped" due to a condition match then
+# the NEXTPC value is ignored and the next microcode line is executed next.
 SECTION:NEXTPC,SIGNED,8
 	NEXT='d1*			# normal operation go to next line
 	FETCH='d0			# go to microcode line 0 == FETCH
@@ -44,8 +49,11 @@ SECTION:NEXTPC,SIGNED,8
 #		(op[3:2] == 2'b10)?zer:		//jz
 #		(op[3:2] == 2'b11)?~zer:
 #		1'b1;				//always jmp
-
-
+#
+#	assign cond =| ((cond_in ^ mcode.cond_xor) & mcode.cond_mask);
+#
+# If cond is true then then NEXTPC value on the current line is ignored
+# and effectively replaced with 'd1
 
 SECTION:COND_MASK,BITMAP,5
 	NUL=NUL*
@@ -71,6 +79,8 @@ SECTION:BUS,BITMAP,7
 	ADSOP=ADS|FLG_R|FLG_I
 	ADSRD=ADS|FLG_R
 	ADSWR=ADS
+
+
 SECTION:LD_L,BITMAP,12
 	NUL=NUL*			# Load nothing from low read bus
 	P0				# Load P0 low from low read bus
@@ -140,10 +150,12 @@ SECTION:ALU_OP,INDEX,4
 	DEC='b1101
 	ADD_NOCARRYIN='b1110
 
-SECTION:CTL,BITMAP,2
+SECTION:CTL,BITMAP,4
 	NUL=NUL*
 	DECODE
 	LOGICOP
+	RET
+	CALL
 
 CODESTART=7
 
@@ -163,11 +175,9 @@ DECODE:
 
 # all loads lead to here and also all logical ops
 LD:	
-# test for LDI
-	NEXTPC=@LDI, COND_MASK=ADI, COND_XOR=ADI
-	LD_L=EA, LD_H=EA, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD
-	BUS=ADSRD
-	BUS=RD, LD_L=D
+	
+	NEXTPC=@LDI, COND_MASK=ADI, COND_XOR=ADI			# test for LDI
+	NEXTPC=@EA, CTL=CALL
 LDI:
 	NEXTPC=FETCH, WR_L=ALU, RD_L=ACC, LD_L=ACC_STAT_ALU, CTL=LOGICOP
 LDE:	
@@ -198,4 +208,15 @@ XAE:
 	WR_L=RD_L, LD_L=D, RD_L=ACC
 	WR_L=RD_L, LD_L=ACC, RD_L=EXT
 	NEXTPC=FETCH, WR_L=RD_L, LD_L=EXT, RD_L=D
+EA:
+	LD_L=EA, LD_H=EA, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD
+	BUS=ADSRD
+	BUS=RD, LD_L=D, CTL=RET
+
+
+
+#TODO
+# For PC-relative, indexed and auto-indexed memory reference instructions is that the contents of the extension register are # substituted for the displacement if the instruction displace equals -128!# 
+# AUTO indexed
+# AUTO indexed -ve before, +ve after!
 
