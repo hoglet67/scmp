@@ -77,7 +77,7 @@ while (<$fh_in>) {
 			push @secorder, $cur_section;
 			$tot_size += $cur_sec_size;
 
-		} elsif ($l =~ /^\s+([A-Za-z]\w*)=NUL(\*)?/) {
+		} elsif ($l =~ /^\s+([A-Za-z]\w*)\s*=\s*NUL\s*(\*)?\s*$/) {
 			#special case NUL
 			my $name = $1;
 			my $def = $2;
@@ -92,7 +92,7 @@ while (<$fh_in>) {
 				name => $name,
 				value => $curs->{size} . '\'d0'
 			};
-		} elsif ($l =~ /^\s+([A-Za-z]\w*)=([^*]+)(\*)?/i) {
+		} elsif ($l =~ /^\s+([A-Za-z]\w*)\s*=\s*([^*]+)(\*)?\s*$/i) {
 			#named value
 			my $name = $1;
 			my $val = $2;
