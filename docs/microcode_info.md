@@ -36,7 +36,7 @@ After a SECTION tag there follows a set of value definitions
 
 ### Value definition:
 
-	<NAME>[=<NUM>|NUL][*]
+	\t<NAME>[=<NUM>|NUL][*]
 
 Each value will be output as a constant named:
 
@@ -69,10 +69,43 @@ Marks the end of the definitions section and the start of the microcode section.
 A set of type definitions for each section and constants for each value/named value
 will be emitted to the scmp_microcode_pla.gen.pak.sc
 
-### Special Sections
-
-## NEXTPC
-
-There must be a section called "NEXTPC" this will be used to encode 
 
 ## MICROCODE
+
+The rest of the file after the line starting CODESTART= is the microcode. Lines
+in the microcode section can be either labels or code lines. 
+
+Each non-blank microcode line is given a zero-based index. Lines may be referred
+to using labels.
+
+### Labels
+
+	<LABEL_NAME>:
+
+A label line must start with a letter or digit (no leading whitespace) and 
+consist of a label name. Labels may be used to refer to microcode lines by name
+in the HDL and in the microcode definitions.
+
+### Microcode lines
+
+	<SECTION_NAME>=<VALUE_NAME>|@LABEL|#LABEL[,<SECTION_NAME>=<VALUE_NAME>|@LABEL|#LABEL]
+
+Each microcode line contains a set of values for each section that needs a 
+non-default value. Each value must come from the set of named values or be a 
+label reference:
+
+#### Relative label reference
+
+	@<LABEL>
+
+These should normally only be used in signed sections and will add a line value
+which is the difference between the index of the label and index of the current line
+
+
+#### Absolute label reference
+
+	#<LABEL>
+
+These should normally only be used in indexed sections and will add a line value
+which is the index of the label.
+

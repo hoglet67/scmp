@@ -164,7 +164,7 @@ while (<$fh_in>) {
 		if ($l =~ /^\s*(\w+):\s*$/) {
 			$code_labels{$1} = $code_ix;
 			push @microcode, {type=>"COMMENT", comment=>"$1 = $code_ix"};
-		} elsif ($l =~ /^\s*(\s*\w+\s*=\s*@?\w+)(\s*,\s*(\s*\w+=\s*@?\w+))*\s*$/) {
+		} elsif ($l =~ /^\s*(\s*\w+\s*=\s*@?\w+)(\s*,\s*(\s*\w+=\s*[#@]?\w+))*\s*$/) {
 			my @parms2 = split(/\s*,\s*/, $l);
 
 			my %params = ();
@@ -190,6 +190,8 @@ while (<$fh_in>) {
 				my $ps = $params{$sec};
 				if ($ps && $ps =~ /^@(\w+)$/) {
 					push @mc_vals, "UCLBL_$1-$curs->{size}'d$code_ix";
+				} elsif ($ps && $ps =~ /^#(\w+)$/) {
+					push @mc_vals, "UCLBL_$1";
 				} else {
 					my $v;
 					if (!$ps || !($ps =~ /^UCLBL_/))
