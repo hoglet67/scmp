@@ -15,4 +15,4 @@ test.rel:	test.asm
 	asscmp -o -l test.bin test.asm
 
 test.vhx: test.bin
-	hexdump -e '/1 "%02X" " "' test.bin >test.vhx
+	/usr/bin/hexdump -e '/1 "%02X" " "' test.bin >test.vhx
