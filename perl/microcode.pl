@@ -2,6 +2,7 @@
 
 use strict;
 use POSIX;
+use Data::Dumper qw(Dumper);
 
 my $TABWIDTH=8;
 
@@ -55,7 +56,7 @@ while (<$fh_in>) {
 		#ignore it's a comment or blank
 	} elsif ($state == 0) {
 		# definitions
-		if ($l =~ /^SECTION:(\w+),(BITMAP|ONEHOT|INDEX|SIGNED),(\d+)/) {
+		if ($l =~ /^SECTION:([A-Za-z]\w*),(BITMAP|ONEHOT|INDEX|SIGNED),(\d+)/) {
 			$cur_section = $1;
 			my $cur_sec_type = $2;
 			my $cur_sec_size = $3;
@@ -69,14 +70,14 @@ while (<$fh_in>) {
 				type => $cur_sec_type,
 				size => $cur_sec_size,
 				maxix => $cur_sec_ix,
-				indeces => [],
+				indices => [],
 				values => [],
 				named_values => []
 			};
 			push @secorder, $cur_section;
 			$tot_size += $cur_sec_size;
 
-		} elsif ($l =~ /^\s+(\w+)=NUL(\*)?/) {
+		} elsif ($l =~ /^\s+([A-Za-z]\w*)=NUL(\*)?/) {
 			#special case NUL
 			my $name = $1;
 			my $def = $2;
@@ -91,7 +92,7 @@ while (<$fh_in>) {
 				name => $name,
 				value => $curs->{size} . '\'d0'
 			};
-		} elsif ($l =~ /^\s+(\w+)=([^*]+)(\*)?/i) {
+		} elsif ($l =~ /^\s+([A-Za-z]\w*)=([^*]+)(\*)?/i) {
 			#named value
 			my $name = $1;
 			my $val = $2;
@@ -106,14 +107,16 @@ while (<$fh_in>) {
 
 			if ($val =~ /^\'/)
 			{
-				$val = $curs->{size} . $val;
+				$val = $curs->{size} . $val;				
 			}
+
+			bounds_check(parseval($val,$cur_section,$curs),$cur_section,$curs);
 
 			push @{$curs->{named_values}}, {
 				name => $name,
 				value => $val
 			};
-		} elsif ($l =~ /\s+(\w+)(\*?)\s*$/) {
+		} elsif ($l =~ /\s+([A-Za-z]\w*)(\*?)\s*$/) {
 			my $name = $1;
 			my $def = $2;
 			my $curs = $sections{$cur_section};
@@ -129,12 +132,14 @@ while (<$fh_in>) {
 			}
 
 			if ($type eq "INDEX") {
-				push @{$curs->{indeces}}, {
+				bounds_check($ix, $cur_section, $curs);
+				push @{$curs->{indices}}, {
 					name => $name,
 					value => $ix
 				};
-			} elsif ($type eq "ONEHOT" || $type eq "BITMAP" ) {				
-				push @{$curs->{indeces}}, {
+			} elsif ($type eq "ONEHOT" || $type eq "BITMAP" ) {
+				bounds_check(2**$ix, $cur_section, $curs);
+				push @{$curs->{indices}}, {
 					name => $name,
 					value => "'d" . $ix
 				};
@@ -308,7 +313,7 @@ foreach my $sec (@secorder) {
 	my $curs = $sections{$sec};
 	$curs || die "Values before section";
 	my $type = $curs->{type};
-	my $indeces = $curs->{indeces};
+	my $indices = $curs->{indices};
 	my $values = $curs->{values};
 	my $named_values = $curs->{named_values};
 
@@ -318,11 +323,11 @@ foreach my $sec (@secorder) {
 	my $szm1 = $curs->{size} - 1;
 
 	if ($type eq "ONEHOT" || $type eq "BITMAP") {
-		if (scalar @$indeces)	{
+		if (scalar @$indices)	{
 			print $fh_out_pak "typedef enum {\n"
 		}
 		$first = 1;
-		for my $nv (@$indeces) {
+		for my $nv (@$indices) {
 			if ($first) {
 				$first = 0;
 			} else {
@@ -330,7 +335,7 @@ foreach my $sec (@secorder) {
 			}	
 			print $fh_out_pak "\t${sec}_IX_$nv->{name}\t= $nv->{value}";
 		}
-		if (scalar @$indeces)	{
+		if (scalar @$indices)	{
 			print $fh_out_pak "\n} ${sec}_ix_t;\n"
 		}
 
@@ -409,4 +414,64 @@ sub pad($$) {
 	$w2 -= $l;
 
 	return "\t" x ceil($w2/$TABWIDTH);
+}
+
+sub bounds_check($$$) {
+	my ($val, $cur_section, $curs) = @_;
+
+	if ($curs->{type} eq "INDEX") {
+		$val < 2**$curs->{size} || die sprintf "Value (%d) too large for INDEX size %s:%d", $val, $cur_section, $curs->{size};
+	} elsif ($curs->{type} eq "BITMAP" || $curs->{type} eq "ONEHOT") {
+		$val < 2**$curs->{size} || die sprintf "Value (%d) too large for BITMAP/ONEHOT size %s:%d", $val, $cur_section, $curs->{size};		
+		$curs->{type} eq "ONEHOT" && countbits($val) > 1 && die sprintf "More than one bit (%b) set in ONEHOT %s", $val, $cur_section;
+	} elsif ($curs->{type} eq "SIGNED") {
+		(
+			$val >= -(2**($curs->{size}-1))
+		&&	$val < (2**($curs->{size}-1))
+		)	|| die sprintf "Value (%d) too large for SIGNED size %s:%d", $val, $cur_section, $curs->{size};
+	} else {
+		die "Unknown type ($curs->{type}) in bounds_check $cur_section";
+	}
+}
+
+sub parseval($$$) {
+	my ($vs,$cur_section,$curs) = @_;
+
+	if ($vs =~ /^([^\|]+)\|(.*)$/) {
+		return parseval($1,$cur_section,$curs) | parseval($2,$cur_section,$curs);
+	} else {
+		if ($vs =~ /^[a-zA-Z]/) {
+			my ($vv) = grep { $vs eq $_->{name} } @{$curs->{values}};
+			if (!$vv) {
+				($vv) = grep { $vs eq $_->{name} } @{$curs->{named_values}};
+			}
+			$vv || die "Cannot find value $vs in section $cur_section in parseval";
+			return parseval($vv->{value});
+		} else {
+			$vs =~ /^\d*\'([dbx])(.*?)\s*$/ || die "Expecting numeric literal got \"$vs\" in parseval";
+			my ($base, $v) = ($1, $2);
+			if ($base eq "b") {
+				return oct("0b" . $v);
+			} elsif ($base eq "d") {
+				return $v;
+			} elsif ($base eq "x") {
+				return hex($v);
+			} else {
+				die "Unexpected base ($base) in parseval";
+			}
+		} 
+	}
+}
+
+sub countbits($) {
+	my ($v) = @_;
+	my $count = 0;
+	while ($v) {
+		if ($v & 0x1) {
+			$count++;
+		}
+
+		$v >>= 1;
+	}
+	return $count;
 }
