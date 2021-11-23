@@ -102,10 +102,4 @@ These should normally only be used in signed sections and will add a line value
 which is the difference between the index of the label and index of the current line
 
 
-#### Absolute label reference
-
-	#<LABEL>
-
-These should normally only be used in indexed sections and will add a line value
-which is the index of the label.
 
