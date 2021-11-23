@@ -92,8 +92,8 @@ output	logic		WR_n
 		.rst_n(rst_n),
 		.clk(clk),
 		.op(reg8_op_q),
-		.zer(reg8_acc_q == 8'd0),
-		.neg(reg8_acc_q[7]),
+		.zer(read_bus_lo == 8'd0),
+		.neg(read_bus_lo[7]),
 
 		.ld_l(ld_l),
 		.ld_h(ld_h),
@@ -186,7 +186,6 @@ output	logic		WR_n
 					ld_h[LD_H_IX_P0 + gi] 
 					| (		
 							ld_h[LD_H_IX_EA] // effective address
-						&&	reg8_op_q[2] == 1'b1 // autoindexed
 						&& 	reg8_op_q[1:0] == gi // this register
 					)
 				),
@@ -200,7 +199,6 @@ output	logic		WR_n
 					ld_l[LD_L_IX_P0 + gi] 
 					| (
 							ld_l[LD_L_IX_EA] // effective address	! CHECK
-						&&	reg8_op_q[2] == 1'b1 // autoindexed
 						&& 	reg8_op_q[1:0] == gi // this register
 					) 
 				),
@@ -214,14 +212,14 @@ output	logic		WR_n
 			.clk(clk),
 			.rst_n(rst_n),
 			.D(write_bus_hi),
-			.ctl_ld(ld_h[LD_H_IX_ADDR] | ld_h[LD_H_IX_EA]),
+			.ctl_ld(ld_h[LD_H_IX_ADDR]),
 			.Q(reg8_addr_h_q)
 		);
 	reg8 reg_addr_l (
 			.clk(clk),
 			.rst_n(rst_n),
 			.D(write_bus_lo),
-			.ctl_ld(ld_l[LD_L_IX_ADDR] | ld_l[LD_L_IX_EA]),
+			.ctl_ld(ld_l[LD_L_IX_ADDR]),
 			.Q(reg8_addr_l_q)
 		);
 

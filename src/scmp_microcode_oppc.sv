@@ -20,6 +20,10 @@ output	NEXTPC_t		op_pc
 			op_pc <= UCLBL_DLD;
 		else if (op[7:4] == 4'b1001)
 			op_pc <= UCLBL_JMP;
+		else if (op[7:2] == 6'b001100)
+			op_pc <= UCLBL_XPAL;
+		else if (op[7:2] == 6'b001101)
+			op_pc <= UCLBL_XPAH;
 		else
 			op_pc <= UCLBL_FETCH;
 	end

@@ -36,6 +36,7 @@ output  logic		bus_F_H
 	COND_MASK_t		cond_in;
 	NEXTPC_t		op_pc;
 	logic			c_jmp;
+	logic			c_ea_postinc;	//when set is a post-inc autoindexed
 
 	//jump logic gives a 1 to not return to fetch on jmp, jz, jnz, jp
 
@@ -45,8 +46,9 @@ output  logic		bus_F_H
 		(op[3:2] == 2'b11)?~zer:
 		1'b1;				//always jmp
 				
+	assign	c_ea_postinc = op[2] & ~neg;
 
-	assign cond_in = { op[7], op[2:0], c_jmp };
+	assign cond_in = { op[7], op[2:0], c_jmp, c_ea_postinc };
 	assign cond =| ((cond_in ^ mcode.cond_xor) & mcode.cond_mask);
 
 
