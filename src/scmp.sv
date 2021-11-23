@@ -199,7 +199,7 @@ output	logic		WR_n
 				.ctl_ld(
 					ld_l[LD_L_IX_P0 + gi] 
 					| (
-							ld_h[LD_H_IX_EA] // effective address
+							ld_l[LD_L_IX_EA] // effective address	! CHECK
 						&&	reg8_op_q[2] == 1'b1 // autoindexed
 						&& 	reg8_op_q[1:0] == gi // this register
 					) 
