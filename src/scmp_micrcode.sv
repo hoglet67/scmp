@@ -59,7 +59,7 @@ output  logic		bus_F_H
 			else if (cond) 
 				mc_pc <= mc_pc + 8'd1;
 			else if (mcode.nextpc == 'd0)
-				mc_pc <= 8'd0;
+				mc_pc <= 'd0;
 			else
 				mc_pc <= mc_pc + mcode.nextpc;
 		end
