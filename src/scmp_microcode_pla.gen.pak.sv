@@ -6,21 +6,24 @@ typedef logic signed[7:0] NEXTPC_t;
 const	NEXTPC_t	NEXTPC_NEXT	= 8'd1;
 const	NEXTPC_t	NEXTPC_FETCH	= 8'd0;
 // COND_MASK
-typedef logic [5:0] COND_MASK_t;
+typedef logic [7:0] COND_MASK_t;
 
-const	COND_MASK_t	COND_MASK_NUL	= 6'd0;
-const	COND_MASK_t	COND_MASK_OP2	= 6'b100000;
-const	COND_MASK_t	COND_MASK_ADI	= 6'b011100;
-const	COND_MASK_t	COND_MASK_JMP	= 6'b000010;
-const	COND_MASK_t	COND_MASK_POSTINC	= 6'b000001;
+const	COND_MASK_t	COND_MASK_NUL	= 8'd0;
+const	COND_MASK_t	COND_MASK_OP2	= 8'b1000000;
+const	COND_MASK_t	COND_MASK_ADI	= 8'b0111000;
+const	COND_MASK_t	COND_MASK_JMP	= 8'b0000100;
+const	COND_MASK_t	COND_MASK_POSTINC	= 8'b0000010;
+const	COND_MASK_t	COND_MASK_RDL80	= 8'b0000001;
 // COND_XOR
-typedef logic [5:0] COND_XOR_t;
+typedef logic [6:0] COND_XOR_t;
 
-const	COND_XOR_t	COND_XOR_NUL	= 6'd0;
-const	COND_XOR_t	COND_XOR_OP2	= 6'b000000;
-const	COND_XOR_t	COND_XOR_ADI	= 6'b010000;
-const	COND_XOR_t	COND_XOR_JMP	= 6'b000000;
-const	COND_XOR_t	COND_XOR_POSTINC	= 6'b000001;
+const	COND_XOR_t	COND_XOR_NUL	= 7'd0;
+const	COND_XOR_t	COND_XOR_OP2	= 7'b0000000;
+const	COND_XOR_t	COND_XOR_ADI	= 7'b0100000;
+const	COND_XOR_t	COND_XOR_JMP	= 7'b0000000;
+const	COND_XOR_t	COND_XOR_POSTINC	= 7'b0000010;
+const	COND_XOR_t	COND_XOR_POSTINCNEG	= 7'b0000000;
+const	COND_XOR_t	COND_XOR_RDL80	= 7'b0000001;
 // BUS
 typedef enum {
 	BUS_IX_WR	= 'd0,
@@ -55,29 +58,33 @@ typedef enum {
 	LD_L_IX_EXT	= 'd6,
 	LD_L_IX_STAT	= 'd7,
 	LD_L_IX_D	= 'd8,
-	LD_L_IX_OP	= 'd9,
-	LD_L_IX_ST_ALU	= 'd10,
-	LD_L_IX_EA	= 'd11
+	LD_L_IX_D80	= 'd9,
+	LD_L_IX_OP	= 'd10,
+	LD_L_IX_ST_ALU	= 'd11,
+	LD_L_IX_EA	= 'd12,
+	LD_L_IX_EAM	= 'd13
 } LD_L_ix_t;
-typedef logic [11:0] LD_L_t;
-const	LD_L_t	LD_L_P0	= 12'b000000000001;
-const	LD_L_t	LD_L_P1	= 12'b000000000010;
-const	LD_L_t	LD_L_P2	= 12'b000000000100;
-const	LD_L_t	LD_L_P3	= 12'b000000001000;
-const	LD_L_t	LD_L_ADDR	= 12'b000000010000;
-const	LD_L_t	LD_L_ACC	= 12'b000000100000;
-const	LD_L_t	LD_L_EXT	= 12'b000001000000;
-const	LD_L_t	LD_L_STAT	= 12'b000010000000;
-const	LD_L_t	LD_L_D	= 12'b000100000000;
-const	LD_L_t	LD_L_OP	= 12'b001000000000;
-const	LD_L_t	LD_L_ST_ALU	= 12'b010000000000;
-const	LD_L_t	LD_L_EA	= 12'b100000000000;
+typedef logic [13:0] LD_L_t;
+const	LD_L_t	LD_L_P0	= 14'b00000000000001;
+const	LD_L_t	LD_L_P1	= 14'b00000000000010;
+const	LD_L_t	LD_L_P2	= 14'b00000000000100;
+const	LD_L_t	LD_L_P3	= 14'b00000000001000;
+const	LD_L_t	LD_L_ADDR	= 14'b00000000010000;
+const	LD_L_t	LD_L_ACC	= 14'b00000000100000;
+const	LD_L_t	LD_L_EXT	= 14'b00000001000000;
+const	LD_L_t	LD_L_STAT	= 14'b00000010000000;
+const	LD_L_t	LD_L_D	= 14'b00000100000000;
+const	LD_L_t	LD_L_D80	= 14'b00001000000000;
+const	LD_L_t	LD_L_OP	= 14'b00010000000000;
+const	LD_L_t	LD_L_ST_ALU	= 14'b00100000000000;
+const	LD_L_t	LD_L_EA	= 14'b01000000000000;
+const	LD_L_t	LD_L_EAM	= 14'b10000000000000;
 
-const	LD_L_t	LD_L_NUL	= 12'd0;
+const	LD_L_t	LD_L_NUL	= 14'd0;
 const	LD_L_t	LD_L_ADDR_PC	= LD_L_P0|LD_L_ADDR;
 const	LD_L_t	LD_L_D_ACC	= LD_L_D|LD_L_ACC;
 const	LD_L_t	LD_L_ACC_STAT_ALU	= LD_L_ACC|LD_L_ST_ALU;
-const	LD_L_t	LD_L_EA_ADDR	= LD_L_EA|LD_L_ADDR;
+const	LD_L_t	LD_L_EAM_ADDR	= LD_L_EAM|LD_L_ADDR;
 // LD_H
 typedef enum {
 	LD_H_IX_P0	= 'd0,
@@ -85,19 +92,21 @@ typedef enum {
 	LD_H_IX_P2	= 'd2,
 	LD_H_IX_P3	= 'd3,
 	LD_H_IX_ADDR	= 'd4,
-	LD_H_IX_EA	= 'd5
+	LD_H_IX_EA	= 'd5,
+	LD_H_IX_EAM	= 'd6
 } LD_H_ix_t;
-typedef logic [5:0] LD_H_t;
-const	LD_H_t	LD_H_P0	= 6'b000001;
-const	LD_H_t	LD_H_P1	= 6'b000010;
-const	LD_H_t	LD_H_P2	= 6'b000100;
-const	LD_H_t	LD_H_P3	= 6'b001000;
-const	LD_H_t	LD_H_ADDR	= 6'b010000;
-const	LD_H_t	LD_H_EA	= 6'b100000;
+typedef logic [6:0] LD_H_t;
+const	LD_H_t	LD_H_P0	= 7'b0000001;
+const	LD_H_t	LD_H_P1	= 7'b0000010;
+const	LD_H_t	LD_H_P2	= 7'b0000100;
+const	LD_H_t	LD_H_P3	= 7'b0001000;
+const	LD_H_t	LD_H_ADDR	= 7'b0010000;
+const	LD_H_t	LD_H_EA	= 7'b0100000;
+const	LD_H_t	LD_H_EAM	= 7'b1000000;
 
-const	LD_H_t	LD_H_NUL	= 6'd0;
+const	LD_H_t	LD_H_NUL	= 7'd0;
 const	LD_H_t	LD_H_ADDR_PC	= LD_H_P0|LD_H_ADDR;
-const	LD_H_t	LD_H_EA_ADDR	= LD_H_EA|LD_H_ADDR;
+const	LD_H_t	LD_H_EAM_ADDR	= LD_H_EAM|LD_H_ADDR;
 // RD_L
 typedef enum {
 	RD_L_IX_P0	= 'd0,
@@ -210,21 +219,22 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_LDE = 7'd18;
-const MCODE_IX_t UCLBL_EAREST = 7'd14;
-const MCODE_IX_t UCLBL_JMP = 7'd34;
-const MCODE_IX_t UCLBL_ST = 7'd19;
-const MCODE_IX_t UCLBL_LD = 7'd8;
-const MCODE_IX_t UCLBL_XPAL = 7'd39;
-const MCODE_IX_t UCLBL_ILD = 7'd28;
-const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd16;
-const MCODE_IX_t UCLBL_EA = 7'd11;
-const MCODE_IX_t UCLBL_LDI = 7'd10;
-const MCODE_IX_t UCLBL_FETCH = 7'd0;
-const MCODE_IX_t UCLBL_DLD = 7'd22;
-const MCODE_IX_t UCLBL_DECODE = 7'd7;
-const MCODE_IX_t UCLBL_XAE = 7'd36;
+const MCODE_IX_t UCLBL_XAE = 7'd39;
+const MCODE_IX_t UCLBL_ILD = 7'd31;
+const MCODE_IX_t UCLBL_XPAL = 7'd42;
+const MCODE_IX_t UCLBL_JMP = 7'd37;
 const MCODE_IX_t UCLBL_RESET = 7'd0;
-const MCODE_IX_t UCLBL_XPAH = 7'd42;
+const MCODE_IX_t UCLBL_DLD = 7'd25;
+const MCODE_IX_t UCLBL_EAR2 = 7'd15;
+const MCODE_IX_t UCLBL_XPAH = 7'd45;
+const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd18;
+const MCODE_IX_t UCLBL_LD = 7'd8;
+const MCODE_IX_t UCLBL_ST = 7'd21;
+const MCODE_IX_t UCLBL_DECODE = 7'd7;
+const MCODE_IX_t UCLBL_EAOFFSEXT = 7'd17;
+const MCODE_IX_t UCLBL_LDE = 7'd20;
+const MCODE_IX_t UCLBL_LDI = 7'd12;
+const MCODE_IX_t UCLBL_FETCH = 7'd0;
+const MCODE_IX_t UCLBL_EA = 7'd13;
 typedef logic [6:0] MCODE_PC_t;
 endpackage

@@ -1,10 +1,18 @@
 blank:		.db	0		
 
+		ldi	#0x44
+		xae
+
 		ld	3(P2)
 		ld	@3(P2)
 		ld	@3(P2)
 		ld	@3(P2)
+		ld	@-128(P2)
 
+		st	-8(P2)
+		st	+8(P2)
+		st	(P2)
+		st	@9(P2)
 
 		ldi	#0x99
 		xpal	p2
@@ -14,8 +22,6 @@ blank:		.db	0
 		ld	@120(P2)
 
 
-		ldi	#0x44
-		xae
 		ldi	#0xA8
 		ore
 		st	bob

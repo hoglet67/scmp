@@ -55,18 +55,21 @@ SECTION:NEXTPC,SIGNED,8
 # If cond is true then then NEXTPC value on the current line is ignored
 # and effectively replaced with 'd1
 
-SECTION:COND_MASK,BITMAP,6
+SECTION:COND_MASK,BITMAP,8
 	NUL=NUL*
-	OP2=		'b100000
-	ADI=		'b011100			# ADI tests for immediate operations on bits 2:0 of the opcode	
-	JMP=		'b000010
-	POSTINC=	'b000001
-SECTION:COND_XOR,BITMAP,6
+	OP2=		'b1000000
+	ADI=		'b0111000			# ADI tests for immediate operations on bits 2:0 of the opcode	
+	JMP=		'b0000100
+	POSTINC=	'b0000010
+	RDL80=		'b0000001
+SECTION:COND_XOR,BITMAP,7
 	NUL=NUL*
-	OP2=		'b000000
-	ADI=		'b010000			# ADI tests for immediate operations on bits 2:0 of the opcode
-	JMP=		'b000000
-	POSTINC=	'b000001
+	OP2=		'b0000000
+	ADI=		'b0100000			# ADI tests for immediate operations on bits 2:0 of the opcode
+	JMP=		'b0000000
+	POSTINC=	'b0000010			# JUMP if POSTINC
+	POSTINCNEG=	'b0000000			# JUMP if !POSTINC
+	RDL80=		'b0000001			# JUMP IF RD_L=0x80
 
 SECTION:BUS,BITMAP,7
 	NUL=NUL*
@@ -82,7 +85,7 @@ SECTION:BUS,BITMAP,7
 	ADSWR=ADS
 
 
-SECTION:LD_L,BITMAP,12
+SECTION:LD_L,BITMAP,14
 	NUL=NUL*			# Load nothing from low read bus
 	P0				# Load P0 low from low read bus
 	P1
@@ -93,23 +96,26 @@ SECTION:LD_L,BITMAP,12
 	EXT
 	STAT
 	D
+	D80				# Load D if D=0x80 (used in LD/ST)
 	OP
 	ST_ALU
-	EA
+	EA				# Load P0..3 depending on bits in op[1:0]
+	EAM				# Load P0..3 depending on bits in op[1:0] only if op[2] == 'b1
 	ADDR_PC=P0|ADDR
 	D_ACC=D|ACC
 	ACC_STAT_ALU=ACC|ST_ALU
-	EA_ADDR=EA|ADDR
-SECTION:LD_H,BITMAP,6
+	EAM_ADDR=EAM|ADDR
+SECTION:LD_H,BITMAP,7
 	NUL=NUL*
 	P0
 	P1
 	P2
 	P3
 	ADDR
-	EA
+	EA				# Load P0..3 depending on bits in op[1:0]
+	EAM				# Load P0..3 depending on bits in op[1:0] only if op[2] == 'b1
 	ADDR_PC=P0|ADDR
-	EA_ADDR=EA|ADDR
+	EAM_ADDR=EAM|ADDR
 SECTION:RD_L,ONEHOT,10
 	P0*
 	P1
@@ -164,43 +170,42 @@ CODESTART=7
 
 #NOTE: FETCH MUST be the first line!
 RESET:
-FETCH:
-	LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=P0, RD_H=P0, WR_L=ALU, WR_H=INCR4, ALU_OP=INC
-	BUS=ADSOP
-	BUS=RD, LD_L=OP
-	NEXTPC=@DECODE, COND_MASK=OP2, COND_XOR=OP2
-	LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=P0, RD_H=P0, WR_L=ALU, WR_H=INCR4, ALU_OP=INC
-	BUS=ADSRD
-	BUS=RD, LD_L=D
+FETCH:		LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=P0, RD_H=P0, WR_L=ALU, WR_H=INCR4, ALU_OP=INC
+		BUS=ADSOP
+		BUS=RD, LD_L=OP
+		NEXTPC=@DECODE, COND_MASK=OP2, COND_XOR=OP2
+		LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=P0, RD_H=P0, WR_L=ALU, WR_H=INCR4, ALU_OP=INC
+		BUS=ADSRD
+		BUS=RD, LD_L=D
 DECODE:
 #decode step will jump to the instruction see scmp_microcode_oppc.sv
-	CTL=DECODE
+		CTL=DECODE
 
 # all loads lead to here and also all logical ops
-LD:	
-	
-	NEXTPC=@LDI, COND_MASK=ADI, COND_XOR=ADI			# test for LDI
-	NEXTPC=@EA, CTL=CALL
-LDI:
-	NEXTPC=FETCH, WR_L=ALU, RD_L=ACC, LD_L=ACC_STAT_ALU, CTL=LOGICOP
+LD:		NEXTPC=@LDI, COND_MASK=ADI, COND_XOR=ADI			# test for LDI
+		NEXTPC=@EA, CTL=CALL
+		BUS=ADSRD
+		BUS=RD, LD_L=D
+LDI:		NEXTPC=FETCH, WR_L=ALU, RD_L=ACC, LD_L=ACC_STAT_ALU, CTL=LOGICOP
 
-EA:
-	NEXTPC=@EAPOSTINC1, COND_MASK=POSTINC, COND_XOR=POSTINC
-	LD_L=EA_ADDR, LD_H=EA_ADDR, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD
-	NEXTPC=NEXT									#DEAD CYCLE
-EAREST:
-	BUS=ADSRD
-	BUS=RD, LD_L=D, CTL=RET
-EAPOSTINC1:
-	LD_L=ADDR, LD_H=ADDR, RD_L=EA, RD_H=EA, WR_L=RD_L, WR_H=RD_H
-	NEXTPC=@EAREST,LD_L=EA, LD_H=EA, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD
 
-LDE:	
-	NEXTPC=@LDI, RD_L=EXT, WR_L=RD_L, LD_L=D
-ST:
-	LD_L=EA, LD_H=EA, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD
-	BUS=ADSWR, WR_L=RD_L, LD_L=D, RD_L=ACC
-	BUS=WR, NEXTPC=FETCH
+EA:		NEXTPC=@EAOFFSEXT,  RD_L=D, COND_MASK=RDL80, COND_XOR=RDL80				# if D=0x80 then replace with EXT
+		NEXTPC=@EAPOSTINC1, RD_L=D, COND_MASK=POSTINC, COND_XOR=POSTINC				# if op[2]='1' and +ve displacement do POSTINC
+EAR2:		LD_L=EAM_ADDR, LD_H=EAM_ADDR, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD	# set address and EA if op[2] set
+		CTL=RET											# DEAD CYCLE to match postinc
+		# offset was -128, replace with contents of EXT		
+EAOFFSEXT:	NEXTPC=@EAR2, COND_MASK=POSTINC, COND_XOR=POSTINCNEG, RD_L=EXT, LD_L=D			# replace D with EXT
+EAPOSTINC1:	LD_L=ADDR, LD_H=ADDR, RD_L=EA, RD_H=EA, WR_L=RD_L, WR_H=RD_H				# set ADDR
+		CTL=RET,LD_L=EA, LD_H=EA, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD	# update register separately
+
+LDE:		NEXTPC=@LDI, RD_L=EXT, WR_L=RD_L, LD_L=D
+
+
+ST:		NEXTPC=NEXT										# DEAD cycle
+		NEXTPC=@EA, CTL=CALL
+		BUS=ADSWR, WR_L=RD_L, LD_L=D, RD_L=ACC
+		BUS=WR, NEXTPC=FETCH
+
 DLD:
 	LD_L=ADDR, LD_H=ADDR, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD
 	BUS=ADSRD

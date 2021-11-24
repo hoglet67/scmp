@@ -94,6 +94,7 @@ output	logic		WR_n
 		.op(reg8_op_q),
 		.zer(read_bus_lo == 8'd0),
 		.neg(read_bus_lo[7]),
+		.minus80(read_bus_lo == 8'h80),
 
 		.ld_l(ld_l),
 		.ld_h(ld_h),
@@ -143,7 +144,10 @@ output	logic		WR_n
 				.clk(clk),
 				.rst_n(rst_n),
 				.D((RD_n==1'b0)?D_i:write_bus_lo),
-				.ctl_ld(ld_l[LD_L_IX_D]),
+				.ctl_ld(
+					ld_l[LD_L_IX_D]
+					|(ld_l[LD_L_IX_D80] & minus80)
+					),
 				.Q(reg8_D_Q)
 	);
 
@@ -185,7 +189,9 @@ output	logic		WR_n
 				.ctl_ld(
 					ld_h[LD_H_IX_P0 + gi] 
 					| (		
-							ld_h[LD_H_IX_EA] // effective address
+						(	ld_h[LD_H_IX_EA] // effective address
+						|	(ld_h[LD_H_IX_EAM] & reg8_op_q[2])
+						)
 						&& 	reg8_op_q[1:0] == gi // this register
 					)
 				),
@@ -198,7 +204,9 @@ output	logic		WR_n
 				.ctl_ld(
 					ld_l[LD_L_IX_P0 + gi] 
 					| (
-							ld_l[LD_L_IX_EA] // effective address	! CHECK
+						(	ld_l[LD_L_IX_EA] // effective address	
+						|	(ld_l[LD_L_IX_EAM] & reg8_op_q[2])
+						)
 						&& 	reg8_op_q[1:0] == gi // this register
 					) 
 				),
