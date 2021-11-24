@@ -166,10 +166,13 @@ while (<$fh_in>) {
 		# microcode
 
 
-		if ($l =~ /^\s*(\w+):\s*$/) {
+		if ($l =~ /^(\w+):(\s*)(.*?)$/) {
+			$l = " " . $3;
 			$code_labels{$1} = $code_ix;
 			push @microcode, {type=>"COMMENT", comment=>"$1 = $code_ix"};
-		} elsif ($l =~ /^\s*(\s*\w+\s*=\s*@?\w+)(\s*,\s*(\s*\w+=\s*@?\w+))*\s*$/) {
+		}
+
+		if ($l =~ /^\s*(\s*\w+\s*=\s*@?\w+)(\s*,\s*(\s*\w+=\s*@?\w+))*\s*$/) {
 			my @parms2 = split(/\s*,\s*/, $l);
 
 			my %params = ();
@@ -178,8 +181,8 @@ while (<$fh_in>) {
 				scalar @pp == 2 || die "Bad code parameter $p";
 				my ($sec, $lbl) = @pp;
 
-				$sec =~ s/\s//;
-				$lbl =~ s/\s//;
+				$sec =~ s/\s+//;
+				$lbl =~ s/\s+//;
 
 
 				$params{$sec} = $lbl;				
@@ -217,13 +220,16 @@ while (<$fh_in>) {
 
 			foreach my $pk (keys %params) {
 				if (!exists $sections{$pk}) {
-					die "unknown parameter $pk";
+					die "unknown parameter \"$pk\"";
 				}
 			}
 
 
 		} else {
-			die "unrecognized line in code section : $l";
+
+			$l =~ /^\s*$/ ||
+				die "unrecognized line in code section : $l";
+			
 		}
 
 	} else {
@@ -477,7 +483,7 @@ sub parseval($$$) {
 				return oct("0b" . $v);
 			} elsif ($base eq "d") {
 				return $v;
-			} elsif ($base eq "x") {
+			} elsif ($base eq "h") {
 				return hex($v);
 			} else {
 				die "Unexpected base ($base) in parseval";
