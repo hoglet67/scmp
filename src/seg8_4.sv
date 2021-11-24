@@ -11,7 +11,7 @@ reg [3:0] 	data;
 reg 		data_dot;
 reg [31:0] 	count1;
 
-always@(posedge clk, negedge nrst)
+always_ff @(posedge clk, negedge nrst)
 begin
 	if(!nrst) begin
 		sel <= 4'b1000;
@@ -24,7 +24,7 @@ begin
 	end
 end
 
-always@(*)
+always_comb
 begin
 	case(sel)
 		4'b0001: data = number[3:0];

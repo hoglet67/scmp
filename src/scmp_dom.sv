@@ -67,9 +67,7 @@ output  wire	[7:0]	disp0_seg
 	);
 
 
-
 	//load memory
-
 	initial begin
 		if (SIM)
 			$readmemh("../../asm/test.vhx", memory);
@@ -83,7 +81,7 @@ output  wire	[7:0]	disp0_seg
 	end
 
 
-	always@(cpu_RD_n) begin
+	always@(cpu_RD_n, cpu_addr) begin
 		if (!cpu_RD_n)
 			cpu_D_i <= memory[cpu_addr & 'd31];
 		else

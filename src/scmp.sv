@@ -113,7 +113,7 @@ output	logic		WR_n
 	);
 
 
-	always @(posedge clk, negedge rst_n) begin
+	always_ff @(posedge clk, negedge rst_n) begin
 		if (!rst_n) begin
 			status_cy <= 1'b0;
 			status_ov <= 1'b0;

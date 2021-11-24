@@ -52,7 +52,7 @@ output  logic		bus_F_H
 	assign cond =| ((cond_in ^ mcode.cond_xor) & mcode.cond_mask);
 
 
-	always@(posedge clk, negedge rst_n) begin
+	always_ff @(posedge clk, negedge rst_n) begin
 		if (!rst_n) 
 		begin
 			mc_pc <= 8'd0;

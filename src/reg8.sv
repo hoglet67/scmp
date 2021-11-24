@@ -6,7 +6,7 @@ input	wire		ctl_ld,
 output	reg	[7:0]	Q
 	);
 
-	always@(posedge clk, negedge rst_n) begin
+	always_ff @(posedge clk, negedge rst_n) begin
 		if (!rst_n) begin
 			Q <= 8'b0;		
 		end

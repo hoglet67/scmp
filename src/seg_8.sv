@@ -7,7 +7,7 @@ module seg_8(
 	reg [6:0] seg2;
 	assign seg = {~dot, ~seg2};
 	
-	always@(*) begin
+	always_comb begin
 		case(data)
 			4'h0: seg2 = 7'b1111110;
 			4'h1: seg2 = 7'b0110000;
