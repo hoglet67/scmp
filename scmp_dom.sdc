@@ -1,31 +1,3 @@
-## Generated SDC file "scmp_dom.out.sdc"
-
-## Copyright (C) 2020  Intel Corporation. All rights reserved.
-## Your use of Intel Corporation's design tools, logic functions 
-## and other software and tools, and any partner logic 
-## functions, and any output files from any of the foregoing 
-## (including device programming or simulation files), and any 
-## associated documentation or information are expressly subject 
-## to the terms and conditions of the Intel Program License 
-## Subscription Agreement, the Intel Quartus Prime License Agreement,
-## the Intel FPGA IP License Agreement, or other applicable license
-## agreement, including, without limitation, that your use is for
-## the sole purpose of programming logic devices manufactured by
-## Intel and sold by Intel or its authorized distributors.  Please
-## refer to the applicable agreement for further details, at
-## https://fpgasoftware.intel.com/eula.
-
-
-## VENDOR  "Altera"
-## PROGRAM "Quartus Prime"
-## VERSION "Version 20.1.1 Build 720 11/11/2020 SJ Lite Edition"
-
-## DATE    "Tue Nov 23 22:00:42 2021"
-
-##
-## DEVICE  "EPM1270T144C5"
-##
-
 
 #**************************************************************
 # Time Information
@@ -39,10 +11,9 @@ set_time_format -unit ns -decimal_places 3
 # Create Clock
 #**************************************************************
 
-create_clock -name {counter[25]} -period 1.000 -waveform { 0.000 0.500 } [get_registers {counter[25]}]
-create_clock -name {counter[14]} -period 1.000 -waveform { 0.000 0.500 } [get_registers {counter[14]}]
+create_clock -name {cpu_clk} -period 250.000 -waveform { 0.000 125.00 } [get_registers {counter[25]}]
+create_clock -name {counter[14]} -period 327680.0 -waveform { 0.000 163840.0 } [get_registers {counter[14]}]
 create_clock -name {clk_50m} -period 20.000 -waveform { 0.000 10.000 } [get_ports { clk_50m }]
-create_clock -name {scmp:cpu|scmp_microcode:microcode|mc_pc[0]} -period 1.000 -waveform { 0.000 0.500 } [get_registers {scmp:cpu|scmp_microcode:microcode|mc_pc[0]}]
 
 
 #**************************************************************
