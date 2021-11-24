@@ -264,7 +264,7 @@ for my $i (0 .. $#secorder) {
 	# add one for space between labels
 	$maxl++; 
 
-	$curs->{textw} = $maxl;
+	$curs->{textw} = $maxl+1;
 
 	print $fh_out_v $sec;
 	print $fh_out_v pad(length($sec), $maxl);
@@ -297,7 +297,30 @@ foreach my $m (@microcode) {
 	}
 }
 
-print $fh_out_v "\t\tdefault: mcode = 0;";
+print $fh_out_v "\t\tdefault:mcode = {\t";
+my $ls = $#secorder;
+for my $i ( 0 .. $ls ) {
+	my $sec = @secorder[$i];
+	my $curs = $sections{$sec};
+
+	my $def = $curs->{def};
+	if (!$def) {
+		$def = @{$curs->{values}}[0]->{name};
+	}
+
+	$def = "${sec}_${def}";
+
+	print $fh_out_v $def;
+	if ($i == $ls) {
+		print $fh_out_v pad(length($def), $curs->{textw});
+	} else {
+		print $fh_out_v "," . pad(length($def)+1, $curs->{textw});
+	}
+
+}
+print $fh_out_v "};\n";
+
+#print $fh_out_v "\t\tdefault: mcode = 0;\n";
 print $fh_out_v "\tendcase\n";
 print $fh_out_v "end\n";
 print $fh_out_v "endmodule\n";
