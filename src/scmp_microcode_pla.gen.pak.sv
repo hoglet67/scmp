@@ -219,22 +219,22 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_XAE = 7'd39;
-const MCODE_IX_t UCLBL_ILD = 7'd31;
-const MCODE_IX_t UCLBL_XPAL = 7'd42;
-const MCODE_IX_t UCLBL_JMP = 7'd37;
-const MCODE_IX_t UCLBL_RESET = 7'd0;
-const MCODE_IX_t UCLBL_DLD = 7'd25;
-const MCODE_IX_t UCLBL_EAR2 = 7'd15;
-const MCODE_IX_t UCLBL_XPAH = 7'd45;
 const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd18;
-const MCODE_IX_t UCLBL_LD = 7'd8;
 const MCODE_IX_t UCLBL_ST = 7'd21;
-const MCODE_IX_t UCLBL_DECODE = 7'd7;
-const MCODE_IX_t UCLBL_EAOFFSEXT = 7'd17;
-const MCODE_IX_t UCLBL_LDE = 7'd20;
 const MCODE_IX_t UCLBL_LDI = 7'd12;
+const MCODE_IX_t UCLBL_RESET = 7'd0;
 const MCODE_IX_t UCLBL_FETCH = 7'd0;
+const MCODE_IX_t UCLBL_EAOFFSEXT = 7'd17;
+const MCODE_IX_t UCLBL_ILD = 7'd31;
+const MCODE_IX_t UCLBL_XAE = 7'd39;
+const MCODE_IX_t UCLBL_LD = 7'd8;
+const MCODE_IX_t UCLBL_EAR2 = 7'd15;
+const MCODE_IX_t UCLBL_XPAL = 7'd42;
 const MCODE_IX_t UCLBL_EA = 7'd13;
+const MCODE_IX_t UCLBL_XPAH = 7'd45;
+const MCODE_IX_t UCLBL_JMP = 7'd37;
+const MCODE_IX_t UCLBL_LDE = 7'd20;
+const MCODE_IX_t UCLBL_DLD = 7'd25;
+const MCODE_IX_t UCLBL_DECODE = 7'd7;
 typedef logic [6:0] MCODE_PC_t;
 endpackage
