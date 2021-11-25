@@ -190,10 +190,9 @@ while (<$fh_in>) {
 
 			my @mc_vals = ();
 			foreach my $sec (@secorder) {
-				my $curs = $sections{$sec};
+				my $curs = $sections{$sec};				
 
 				$curs || die "missing section $sec";
-
 
 				my $ps = $params{$sec};
 				if ($ps && $ps =~ /^@(\w+)$/) {
@@ -206,6 +205,7 @@ while (<$fh_in>) {
 					} 
 
 					if ($ps) {
+						parseval($ps, $sec, $curs); #check it exists						
 						$v .= $ps;
 					} elsif (exists $curs->{def}) {
 						$v .= $curs->{def};
@@ -475,7 +475,7 @@ sub parseval($$$) {
 				($vv) = grep { $vs eq $_->{name} } @{$curs->{named_values}};
 			}
 			$vv || die "Cannot find value $vs in section $cur_section in parseval";
-			return parseval($vv->{value});
+			return parseval($vv->{value}, $cur_section, $curs);
 		} else {
 			$vs =~ /^\d*\'([dbx])(.*?)\s*$/ || die "Expecting numeric literal got \"$vs\" in parseval";
 			my ($base, $v) = ($1, $2);
