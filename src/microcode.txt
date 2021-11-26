@@ -116,7 +116,7 @@ SECTION:LD_H,BITMAP,7
 	EAM				# Load P0..3 depending on bits in op[1:0] only if op[2] == 'b1
 	ADDR_PC=P0|ADDR
 	EAM_ADDR=EAM|ADDR
-SECTION:RD_L,ONEHOT,10
+SECTION:RD_L,ONEHOT,11
 	P0*
 	P1
 	P2
@@ -127,6 +127,7 @@ SECTION:RD_L,ONEHOT,10
 	STATUS
 	D
 	EA
+	CONST_66
 SECTION:RD_H,ONEHOT,6
 	P0*
 	P1
@@ -144,13 +145,15 @@ SECTION:WR_H,ONEHOT,3
 	INCR4
 SECTION:ALU_OP,INDEX,4
 	NUL='b0000*
-	NUL1='b0001
+
+	# AND, OR, XOR need to be the same as {1'b0, op[5:3]}
 	AND='b0010
 	OR='b0011
 	XOR='b0100
-	DA='b0101
+
+	# 4-bit accumulator!
 	ADD='b0110
-	CAD='b0111
+
 	SR='b1000
 	SRL='b1001
 	RR='b1010
@@ -187,18 +190,27 @@ LD:		NEXTPC=@LDI, COND_MASK=ADI, COND_XOR=ADI			# test for LDI
 		BUS=ADSRD
 		BUS=RD, LD_L=D
 LDI:		NEXTPC=FETCH, WR_L=ALU, RD_L=ACC, LD_L=ACC_STAT_ALU, CTL=LOGICOP
-
-
-EA:		NEXTPC=@EAOFFSEXT,  RD_L=D, COND_MASK=RDL80, COND_XOR=RDL80				# if D=0x80 then replace with EXT
-		NEXTPC=@EAPOSTINC1, RD_L=D, COND_MASK=POSTINC, COND_XOR=POSTINC				# if op[2]='1' and +ve displacement do POSTINC
-EAR2:		LD_L=EAM_ADDR, LD_H=EAM_ADDR, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD	# set address and EA if op[2] set
-		CTL=RET											# DEAD CYCLE to match postinc
-		# offset was -128, replace with contents of EXT		
-EAOFFSEXT:	NEXTPC=@EAR2, COND_MASK=POSTINC, COND_XOR=POSTINCNEG, RD_L=EXT, LD_L=D			# replace D with EXT
-EAPOSTINC1:	LD_L=ADDR, LD_H=ADDR, RD_L=EA, RD_H=EA, WR_L=RD_L, WR_H=RD_H				# set ADDR
-		CTL=RET,LD_L=EA, LD_H=EA, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD	# update register separately
-
 LDE:		NEXTPC=@LDI, RD_L=EXT, WR_L=RD_L, LD_L=D
+
+# decimal add
+DAD:		NEXTPC=@DAI, COND_MASK=ADI, COND_XOR=ADI			# test for DAI
+		NEXTPC=@EA, CTL=CALL
+		BUS=ADSRD
+		BUS=RD, LD_L=D
+DAI:		LD_L=D, WR_L=ALU, RD_L=CONST_66, ALU_OP=ADD
+		NEXTPC=FETCH, WR_L=ALU, RD_L=ACC, LD_L=ACC_STAT_ALU, ALU_OP=ADD
+DAE:		NEXTPC=@DAI, RD_L=EXT, WR_L=RD_L, LD_L=D
+
+#TODO-FIX EA to use 4 bit ALU / ADD
+EA:		NEXTPC=@EAOFFSEXT,  RD_L=D, COND_MASK=RDL80, COND_XOR=RDL80					# if D=0x80 then replace with EXT
+		NEXTPC=@EAPOSTINC1, RD_L=D, COND_MASK=POSTINC, COND_XOR=POSTINC					# if op[2]='1' and +ve displacement do POSTINC
+EAR2:		LD_L=EAM_ADDR, LD_H=EAM_ADDR, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD_NOCARRYIN	# set address and EA if op[2] set
+		CTL=RET												# DEAD CYCLE to match postinc
+		# offset was -128, replace with contents of EXT		
+EAOFFSEXT:	NEXTPC=@EAR2, COND_MASK=POSTINC, COND_XOR=POSTINCNEG, RD_L=EXT, LD_L=D				# replace D with EXT
+EAPOSTINC1:	LD_L=ADDR, LD_H=ADDR, RD_L=EA, RD_H=EA, WR_L=RD_L, WR_H=RD_H					# set ADDR
+		CTL=RET,LD_L=EA, LD_H=EA, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD_NOCARRYIN		# update register separately
+
 
 
 ST:		NEXTPC=NEXT										# DEAD cycle

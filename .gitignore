@@ -16,3 +16,4 @@ perl/test.v
 perl/test.vh
 *.sublime-project
 *.sublime-workspace
+*.bak

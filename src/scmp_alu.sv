@@ -27,8 +27,6 @@ output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was n
 				res <= A | B;
 			ALU_OP_XOR	:	
 				res <= A ^ B;
-			ALU_OP_DA	:
-				res <= 8'bxxxxxxxx;
 			ALU_OP_ADD	:	
 				begin
 				{ Cy_o, res } <= A + B + { {7{1'b0}}, Cy_i };
