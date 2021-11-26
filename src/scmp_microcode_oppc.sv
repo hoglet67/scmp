@@ -29,6 +29,8 @@ output	NEXTPC_t		op_pc
 			op_pc <= UCLBL_XPAL;
 		else if (op[7:2] == 6'b001101)
 			op_pc <= UCLBL_XPAH;
+		else if (op[7:1] == 7'b0000001)
+			op_pc <= UCLBL__CL;
 		else
 			op_pc <= UCLBL_FETCH;
 	end

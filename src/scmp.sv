@@ -34,6 +34,7 @@ output	logic		WR_n
 	logic	[7:0]				reg8_D_Q;
 	logic	[7:0]				reg8_op_q;
 	//status register (registers)
+	logic					status_hcy;
 	logic					status_cy;
 	logic					status_ov;
 	logic					status_ie;
@@ -77,8 +78,9 @@ output	logic		WR_n
 	ALU_OP_t				alu_op;
 	logic	[7:0]				alu_Q;
 	logic					alu_cy;
+	logic					alu_hcy;		// half carry - TODO:get rid, move to 4 bit adder
 	logic					alu_ov;
-	logic					alu_cy_sgn;
+	logic					alu_cy_sgn;		// sign of "B" operand in last add, TODO: replace with D sign?
 
 	logic	bus_F_R;
 	logic	bus_F_I;
@@ -88,6 +90,9 @@ output	logic		WR_n
 	logic	[7:0]				rd_ea_l;
 	logic	[7:0]				rd_ea_h;
 
+	MCODE_t					mcode;
+
+
 	scmp_microcode microcode (
 		.rst_n(rst_n),
 		.clk(clk),
@@ -95,6 +100,8 @@ output	logic		WR_n
 		.zer(read_bus_lo == 8'd0),
 		.neg(read_bus_lo[7]),
 		.minus80(read_bus_lo == 8'h80),
+		.cy(status_cy),
+		.hcy(status_hcy),
 
 		.ld_l(ld_l),
 		.ld_h(ld_h),
@@ -110,12 +117,14 @@ output	logic		WR_n
 		.bus_F_R(bus_F_R),
 		.bus_F_I(bus_F_I),
 		.bus_F_D(bus_F_D),
-		.bus_F_H(bus_F_H)
+		.bus_F_H(bus_F_H),
+		.mcode(mcode)
 	);
 
 
 	always_ff @(posedge clk, negedge rst_n) begin
 		if (!rst_n) begin
+			status_hcy <= 1'b0;
 			status_cy <= 1'b0;
 			status_ov <= 1'b0;
 			status_ie <= 1'b0;
@@ -124,15 +133,19 @@ output	logic		WR_n
 			status_f0 <= 1'b0;
 		end
 		else begin
-			if (ld_l[LD_L_IX_STAT]) begin
+			if (mcode.ctl[CTL_IX_CYOP0])
+				status_cy <= reg8_op_q[0];
+			else if (ld_l[LD_L_IX_STAT]) begin
 				status_cy <= read_bus_lo[7];
 				status_ov <= read_bus_lo[6];
 				status_ie <= read_bus_lo[3];
 				status_f2 <= read_bus_lo[2];
 				status_f1 <= read_bus_lo[1];
 				status_f0 <= read_bus_lo[0];
-			end else if (ld_l[LD_L_IX_ST_ALU]) begin
+			end else if (ld_l[LD_L_IX_ST_CY]) begin
 				status_cy <= alu_cy;
+				status_hcy <= alu_hcy;
+			end else if (ld_l[LD_L_IX_ST_OV]) begin
 				status_ov <= alu_ov;
 			end
 		end
@@ -246,9 +259,11 @@ output	logic		WR_n
 		.op(alu_op),
 		.A(read_bus_lo),
 		.B(reg8_D_Q),
+		.HCy_i(status_hcy),
 		.Cy_i(status_cy),
 		.Ov_i(status_ov),
 		.res(alu_Q),
+		.HCy_o(alu_hcy),
 		.Cy_o(alu_cy),
 		.Ov_o(alu_ov),
 		.Cy_sgn_o(alu_cy_sgn)
@@ -266,6 +281,8 @@ output	logic		WR_n
 	mux_oh mux_read_bus_lo (
 			.sel_oh(read_bus_lo_src_oh),
 			.D('{	
+				8'hA0,
+				8'hFA,
 				8'h66,
 				rd_ea_l,
 				reg8_D_Q,

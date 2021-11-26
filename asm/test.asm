@@ -1,7 +1,21 @@
 blank:		.db	0		
 
+		ccl
 		ldi	#0x44
 		dai	#0x66
+
+		ccl
+		ldi	#0x23
+		dai	#0x99
+
+		ccl
+		ldi	#0x23
+		dai	#0x76
+
+		scl
+		ldi	#0x23
+		dai	#0x76
+
 		xae
 
 		ld	3(P2)

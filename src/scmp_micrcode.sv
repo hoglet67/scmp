@@ -8,6 +8,8 @@ input	logic[7:0]	op,
 input	logic		zer,		//set when read bus lo == 0
 input	logic		neg,		//set when read bus lo is -ve
 input	logic		minus80,	//set when read bus lo == 0x80 
+input	logic		cy,
+input	logic		hcy,
 
 output	LD_L_t		ld_l,
 output	LD_H_t		ld_h,
@@ -24,7 +26,9 @@ output  logic		bus_WR_n,
 output  logic		bus_F_R,
 output  logic		bus_F_I,
 output  logic		bus_F_D,
-output  logic		bus_F_H
+output  logic		bus_F_H,
+
+output	MCODE_t		mcode
 
 
 );
@@ -32,7 +36,7 @@ output  logic		bus_F_H
 	MCODE_PC_t		mc_pc;
 	MCODE_PC_t		mc_ret;
 
-	MCODE_t			mcode;
+	MCODE_t			i_mcode;
 	wire			cond;	// when this is set the NEXT field is ignored and the next uI is invoked
 	COND_MASK_t		cond_in;
 	NEXTPC_t		op_pc;
@@ -49,8 +53,8 @@ output  logic		bus_F_H
 				
 	assign	c_ea_postinc = op[2] & ~neg;
 
-	assign cond_in = { op[7], op[2:0], c_jmp, c_ea_postinc, minus80 };
-	assign cond =| ((cond_in ^ mcode.cond_xor) & mcode.cond_mask);
+	assign cond_in = { op[7], op[2:0], c_jmp, c_ea_postinc, minus80, cy, hcy };
+	assign cond =| ((cond_in ^ i_mcode.cond_xor) & i_mcode.cond_mask);
 
 
 	always_ff @(posedge clk, negedge rst_n) begin
@@ -61,25 +65,25 @@ output  logic		bus_F_H
 		end
 		else
 		begin			
-			if (mcode.ctl[CTL_IX_DECODE]) 
+			if (i_mcode.ctl[CTL_IX_DECODE]) 
 				mc_pc <= op_pc;
-			else if (mcode.ctl[CTL_IX_RET]) 
+			else if (i_mcode.ctl[CTL_IX_RET]) 
 				mc_pc <= mc_ret;
-			else if (cond) 
+			else if (cond & i_mcode.ctl[CTL_IX_COND_JMP]) 
 				mc_pc <= mc_pc + 8'd1;
-			else if (mcode.nextpc == 'd0)
+			else if (i_mcode.nextpc == 'd0)
 				mc_pc <= 'd0;
 			else
-				mc_pc <= mc_pc + mcode.nextpc;
+				mc_pc <= mc_pc + i_mcode.nextpc;
 
-			if (mcode.ctl[CTL_IX_CALL])
+			if (i_mcode.ctl[CTL_IX_CALL])
 				mc_ret <= mc_pc + 8'd1;
 		end
 	end
 
 	scmp_microcode_pla pla (
 		.pc(mc_pc),
-		.mcode(mcode)
+		.mcode(i_mcode)
 		);
 
 	scmp_microcode_oppc op2pc (
@@ -87,15 +91,16 @@ output  logic		bus_F_H
 		.op_pc(op_pc)
 		);
 
-	assign { bus_F_H, bus_F_D, bus_F_I, bus_F_R} = mcode.bus[6:3];
-	assign { bus_ADS_n, bus_RD_n, bus_WR_n } = ~mcode.bus[2:0];
-	assign ld_l = mcode.ld_l;
-
-	assign ld_h = mcode.ld_h;
-	assign rd_l = mcode.rd_l;
-	assign rd_h = mcode.rd_h;
-	assign wr_l = mcode.wr_l;
-	assign wr_h = mcode.wr_h;
-	assign alu_op = (mcode.ctl[CTL_IX_LOGICOP])?{1'b0,op[5:3]}:mcode.alu_op;
+	assign { bus_F_H, bus_F_D, bus_F_I, bus_F_R} = i_mcode.bus[6:3];
+	assign { bus_ADS_n, bus_RD_n, bus_WR_n } = ~i_mcode.bus[2:0];
+	
+	assign ld_l = i_mcode.ld_l & {$bits(ld_l){cond | ~i_mcode.ctl[CTL_IX_COND_LD]}};
+	assign ld_h = i_mcode.ld_h & {$bits(ld_l){cond | ~i_mcode.ctl[CTL_IX_COND_LD]}};
+	assign rd_l = i_mcode.rd_l;
+	assign rd_h = i_mcode.rd_h;
+	assign wr_l = i_mcode.wr_l;
+	assign wr_h = i_mcode.wr_h;
+	assign alu_op = (i_mcode.ctl[CTL_IX_LOGICOP])?{1'b0,op[5:3]}:i_mcode.alu_op;
+	assign mcode = i_mcode;
 
 endmodule
