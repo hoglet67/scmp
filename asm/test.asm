@@ -16,6 +16,7 @@ blank:		.db	0
 		ldi	#0x23
 		dai	#0x76
 
+		ldi	#44
 		xae
 
 		ld	3(P2)

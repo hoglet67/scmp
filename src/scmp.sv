@@ -99,7 +99,7 @@ output	logic		WR_n
 		.op(reg8_op_q),
 		.zer(read_bus_lo == 8'd0),
 		.neg(read_bus_lo[7]),
-		.minus80(read_bus_lo == 8'h80),
+		.minus80(reg8_D_Q == 8'h80),
 		.cy(status_cy),
 		.hcy(status_hcy),
 
@@ -157,10 +157,7 @@ output	logic		WR_n
 				.clk(clk),
 				.rst_n(rst_n),
 				.D((RD_n==1'b0)?D_i:write_bus_lo),
-				.ctl_ld(
-					ld_l[LD_L_IX_D]
-					|(ld_l[LD_L_IX_D80] & minus80)
-					),
+				.ctl_ld(ld_l[LD_L_IX_D]),
 				.Q(reg8_D_Q)
 	);
 
