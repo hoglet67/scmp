@@ -8,8 +8,10 @@ input	logic[7:0]	op,
 input	logic		zer,		//set when read bus lo == 0
 input	logic		neg,		//set when read bus lo is -ve
 input	logic		minus80,	//set when read bus lo == 0x80 
-input	logic		cy,
-input	logic		hcy,
+//TODO: carries might all be collapsed into one flag with 4 bit alu
+input	logic		cy,		//cy from status
+input	logic		hcy,		//half carry from hidden status
+input	logic		alu_cy,		//cy from alu (this cycle)	
 
 output	LD_L_t		ld_l,
 output	LD_H_t		ld_h,
@@ -53,7 +55,7 @@ output	MCODE_t		mcode
 				
 	assign	c_ea_postinc = op[2] & ~neg;
 
-	assign cond_in = { op[7], op[2:0], c_jmp, c_ea_postinc, minus80, cy, hcy };
+	assign cond_in = { op[7], op[2:0], c_jmp, c_ea_postinc, minus80, cy, hcy, alu_cy};
 	assign cond =| ((cond_in ^ i_mcode.cond_xor) & i_mcode.cond_mask);
 
 

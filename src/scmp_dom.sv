@@ -1,5 +1,5 @@
 
-`define MEM_SIZE 64
+`define MEM_SIZE 128
 
 
 module scmp_dom

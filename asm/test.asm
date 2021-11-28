@@ -54,6 +54,10 @@ blank:		.db	0
 		st	bob
 		ldi	#0x80
 		adi	#0x80
+
+		ldi	#5
+		dly	#2
+
 here:		jmp	here
 
 bob:		.db	0

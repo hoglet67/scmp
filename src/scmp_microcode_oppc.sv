@@ -7,7 +7,9 @@ output	NEXTPC_t		op_pc
 	
 
 	always_comb begin
-		if (op[7:0] == 8'b00000001)
+		if (op[7:0] == 8'b10001111)
+			op_pc <= UCLBL_DLY;
+		else if (op[7:0] == 8'b00000001)
 			op_pc <= UCLBL_XAE;
 		else if (op[7:3] == 5'b11001 & op[2:0] != 3'b100)
 			op_pc <= UCLBL_ST;

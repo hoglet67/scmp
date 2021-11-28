@@ -102,6 +102,7 @@ output	logic		WR_n
 		.minus80(reg8_D_Q == 8'h80),
 		.cy(status_cy),
 		.hcy(status_hcy),
+		.alu_cy(alu_cy),
 
 		.ld_l(ld_l),
 		.ld_h(ld_h),
