@@ -58,6 +58,7 @@ blank:		.db	0
 		ldi	#5
 		dly	#2
 
-here:		jmp	here
+here:		halt
+		jmp	here
 
 bob:		.db	0
