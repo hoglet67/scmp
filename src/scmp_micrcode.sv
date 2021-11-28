@@ -44,6 +44,8 @@ output	MCODE_t		mcode
 	NEXTPC_t		op_pc;
 	logic			c_jmp;
 	logic			c_ea_postinc;	//when set is a post-inc autoindexed
+	logic			op_dly;	// used to get FLG_D in 2nd opcode byte
+	logic			uc_bus_F_D;
 
 	//jump logic gives a 1 to not return to fetch on jmp, jz, jnz, jp
 
@@ -90,10 +92,12 @@ output	MCODE_t		mcode
 
 	scmp_microcode_oppc op2pc (
 		.op(op),
-		.op_pc(op_pc)
+		.op_pc(op_pc),
+		.op_dly(op_dly)
 		);
 
-	assign { bus_F_H, bus_F_D, bus_F_I, bus_F_R} = i_mcode.bus[6:3];
+	assign { bus_F_H, uc_bus_F_D, bus_F_I, bus_F_R} = i_mcode.bus[6:3];
+	assign bus_F_D = uc_bus_F_D & op_dly;
 	assign { bus_ADS_n, bus_RD_n, bus_WR_n } = ~i_mcode.bus[2:0];
 	
 	assign ld_l = i_mcode.ld_l & {$bits(ld_l){cond | ~i_mcode.ctl[CTL_IX_COND_LD]}};

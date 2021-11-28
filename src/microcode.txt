@@ -85,13 +85,13 @@ SECTION:BUS,BITMAP,7
 	ADS
 	FLG_R
 	FLG_I
-	FLG_D
+	FLG_D				# (gated by this opcode actually being a delay)
 	FLG_H
 	ADSOP=ADS|FLG_R|FLG_I
 	ADSRD=ADS|FLG_R
 	ADSWR=ADS
 	ADSHALT=ADS|FLG_R|FLG_H
-
+	ADSRDOP2=ADS|FLG_R|FLG_D
 
 SECTION:LD_L,BITMAP,14
 	NUL=NUL*			# Load nothing from low read bus
@@ -192,7 +192,7 @@ FETCH:		LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=P0, RD_H=P0, WR_L=ALU, WR_H=INCR4, ALU_
 		BUS=RD, LD_L=OP
 		NEXTPC=@DECODE, COND_MASK=OP2, COND_XOR=OP2, CTL=COND_JMP
 		LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=P0, RD_H=P0, WR_L=ALU, WR_H=INCR4, ALU_OP=INC
-		BUS=ADSRD
+		BUS=ADSRDOP2
 		BUS=RD, LD_L=D
 DECODE:
 #decode step will jump to the instruction see scmp_microcode_oppc.sv

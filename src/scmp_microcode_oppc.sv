@@ -2,15 +2,20 @@ import scmp_microcode_pak::*;
 
 module scmp_microcode_oppc (
 input	logic	[7:0]		op,
-output	NEXTPC_t		op_pc
+output	NEXTPC_t		op_pc,
+output	logic			op_dly
 );
 	
 
 	always_comb begin
+		op_dly <= 1'b0;
 		if (op[7:0] == 8'b00000000)
 			op_pc <= UCLBL_HALT;
-		else if (op[7:0] == 8'b10001111)
+		else if (op[7:0] == 8'b10001111) 
+		begin
 			op_pc <= UCLBL_DLY;
+			op_dly <= 1'b1;
+		end
 		else if (op[7:0] == 8'b00000001)
 			op_pc <= UCLBL_XAE;
 		else if (op[7:3] == 5'b11001 & op[2:0] != 3'b100)

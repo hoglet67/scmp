@@ -54,6 +54,7 @@ const	BUS_t	BUS_ADSOP	= BUS_ADS|BUS_FLG_R|BUS_FLG_I;
 const	BUS_t	BUS_ADSRD	= BUS_ADS|BUS_FLG_R;
 const	BUS_t	BUS_ADSWR	= BUS_ADS;
 const	BUS_t	BUS_ADSHALT	= BUS_ADS|BUS_FLG_R|BUS_FLG_H;
+const	BUS_t	BUS_ADSRDOP2	= BUS_ADS|BUS_FLG_R|BUS_FLG_D;
 // LD_L
 typedef enum {
 	LD_L_IX_P0	= 'd0,
@@ -236,27 +237,27 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_EA = 7'd23;
-const MCODE_IX_t UCLBL_HALT = 7'd62;
-const MCODE_IX_t UCLBL_DAD = 7'd14;
-const MCODE_IX_t UCLBL_XPAL = 7'd50;
-const MCODE_IX_t UCLBL_DLD = 7'd33;
-const MCODE_IX_t UCLBL_XAE = 7'd47;
-const MCODE_IX_t UCLBL_JMP = 7'd45;
-const MCODE_IX_t UCLBL_ST = 7'd29;
-const MCODE_IX_t UCLBL_DLY = 7'd56;
-const MCODE_IX_t UCLBL__CL = 7'd61;
-const MCODE_IX_t UCLBL_DAE = 7'd22;
-const MCODE_IX_t UCLBL_LDE = 7'd13;
-const MCODE_IX_t UCLBL_LDI = 7'd12;
-const MCODE_IX_t UCLBL_DAI = 7'd18;
-const MCODE_IX_t UCLBL_LD = 7'd8;
-const MCODE_IX_t UCLBL_ILD = 7'd39;
-const MCODE_IX_t UCLBL_DECODE = 7'd7;
 const MCODE_IX_t UCLBL_EAR2 = 7'd25;
-const MCODE_IX_t UCLBL_XPAH = 7'd53;
-const MCODE_IX_t UCLBL_RESET = 7'd0;
-const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd27;
 const MCODE_IX_t UCLBL_FETCH = 7'd0;
+const MCODE_IX_t UCLBL_LD = 7'd8;
+const MCODE_IX_t UCLBL_DAE = 7'd22;
+const MCODE_IX_t UCLBL_DAI = 7'd18;
+const MCODE_IX_t UCLBL_RESET = 7'd0;
+const MCODE_IX_t UCLBL_DLD = 7'd33;
+const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd27;
+const MCODE_IX_t UCLBL_ILD = 7'd39;
+const MCODE_IX_t UCLBL_EA = 7'd23;
+const MCODE_IX_t UCLBL_DLY = 7'd56;
+const MCODE_IX_t UCLBL_DAD = 7'd14;
+const MCODE_IX_t UCLBL_JMP = 7'd45;
+const MCODE_IX_t UCLBL_HALT = 7'd62;
+const MCODE_IX_t UCLBL_XAE = 7'd47;
+const MCODE_IX_t UCLBL_DECODE = 7'd7;
+const MCODE_IX_t UCLBL_XPAL = 7'd50;
+const MCODE_IX_t UCLBL_LDI = 7'd12;
+const MCODE_IX_t UCLBL_LDE = 7'd13;
+const MCODE_IX_t UCLBL_ST = 7'd29;
+const MCODE_IX_t UCLBL__CL = 7'd61;
+const MCODE_IX_t UCLBL_XPAH = 7'd53;
 typedef logic [6:0] MCODE_PC_t;
 endpackage
