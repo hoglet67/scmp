@@ -187,19 +187,20 @@ typedef enum logic [2:0] {
 	WR_H_INCR4	= 3'b100
 } WR_H_t;
 // ALU_OP
-typedef logic [3:0] ALU_OP_t;
-const	ALU_OP_t	ALU_OP_NUL	= 4'b0000;
-const	ALU_OP_t	ALU_OP_AND	= 4'b0010;
-const	ALU_OP_t	ALU_OP_OR	= 4'b0011;
-const	ALU_OP_t	ALU_OP_XOR	= 4'b0100;
-const	ALU_OP_t	ALU_OP_ADD	= 4'b0110;
-const	ALU_OP_t	ALU_OP_SR	= 4'b1000;
-const	ALU_OP_t	ALU_OP_SRL	= 4'b1001;
-const	ALU_OP_t	ALU_OP_RR	= 4'b1010;
-const	ALU_OP_t	ALU_OP_RRL	= 4'b1011;
-const	ALU_OP_t	ALU_OP_INC	= 4'b1100;
-const	ALU_OP_t	ALU_OP_DEC	= 4'b1101;
-const	ALU_OP_t	ALU_OP_ADD_NOCARRYIN	= 4'b1110;
+typedef logic [2:0] ALU_OP_t;
+const	ALU_OP_t	ALU_OP_NUL	= 3'b000;
+const	ALU_OP_t	ALU_OP_RRL	= 3'b001;
+const	ALU_OP_t	ALU_OP_AND	= 3'b010;
+const	ALU_OP_t	ALU_OP_OR	= 3'b011;
+const	ALU_OP_t	ALU_OP_XOR	= 3'b100;
+const	ALU_OP_t	ALU_OP_INC	= 3'b101;
+const	ALU_OP_t	ALU_OP_DEC	= 3'b110;
+const	ALU_OP_t	ALU_OP_ADD	= 3'b111;
+// ALU_CY_IN
+typedef logic [1:0] ALU_CY_IN_t;
+const	ALU_CY_IN_t	ALU_CY_IN_STATUS	= 2'b00;
+const	ALU_CY_IN_t	ALU_CY_IN_ZERO	= 2'b01;
+const	ALU_CY_IN_t	ALU_CY_IN_SIN	= 2'b10;
 // CTL
 typedef enum {
 	CTL_IX_DECODE	= 'd0,
@@ -235,36 +236,37 @@ typedef struct packed {
 	WR_L_t	wr_l;
 	WR_H_t	wr_h;
 	ALU_OP_t	alu_op;
+	ALU_CY_IN_t	alu_cy_in;
 	CTL_t	ctl;
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
 const MCODE_IX_t UCLBL_LDE = 7'd12;
-const MCODE_IX_t UCLBL_CSA = 7'd69;
-const MCODE_IX_t UCLBL__CL = 7'd66;
-const MCODE_IX_t UCLBL_HALT = 7'd73;
-const MCODE_IX_t UCLBL_XPPC = 7'd57;
-const MCODE_IX_t UCLBL_XPAH = 7'd53;
-const MCODE_IX_t UCLBL_DAE = 7'd21;
-const MCODE_IX_t UCLBL_JMP = 7'd44;
-const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd26;
-const MCODE_IX_t UCLBL_EA = 7'd22;
-const MCODE_IX_t UCLBL_ST = 7'd28;
 const MCODE_IX_t UCLBL_NOP = 7'd72;
-const MCODE_IX_t UCLBL_RESET = 7'd0;
-const MCODE_IX_t UCLBL_XPAL = 7'd49;
-const MCODE_IX_t UCLBL_LD = 7'd7;
 const MCODE_IX_t UCLBL_DAD = 7'd13;
-const MCODE_IX_t UCLBL_XAE = 7'd46;
-const MCODE_IX_t UCLBL_FETCH = 7'd0;
 const MCODE_IX_t UCLBL_CAS = 7'd70;
-const MCODE_IX_t UCLBL_LDI = 7'd11;
-const MCODE_IX_t UCLBL_EAR2 = 7'd24;
-const MCODE_IX_t UCLBL_DLD = 7'd32;
-const MCODE_IX_t UCLBL__IE = 7'd67;
-const MCODE_IX_t UCLBL_DECODE = 7'd6;
-const MCODE_IX_t UCLBL_DAI = 7'd17;
-const MCODE_IX_t UCLBL_DLY = 7'd60;
 const MCODE_IX_t UCLBL_ILD = 7'd38;
+const MCODE_IX_t UCLBL_XPPC = 7'd57;
+const MCODE_IX_t UCLBL_XPAL = 7'd49;
+const MCODE_IX_t UCLBL_LDI = 7'd11;
+const MCODE_IX_t UCLBL_DECODE = 7'd6;
+const MCODE_IX_t UCLBL_XPAH = 7'd53;
+const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd26;
+const MCODE_IX_t UCLBL_RESET = 7'd0;
+const MCODE_IX_t UCLBL_DLY = 7'd60;
+const MCODE_IX_t UCLBL_CSA = 7'd69;
+const MCODE_IX_t UCLBL_LD = 7'd7;
+const MCODE_IX_t UCLBL__CL = 7'd66;
+const MCODE_IX_t UCLBL_DLD = 7'd32;
+const MCODE_IX_t UCLBL_HALT = 7'd73;
+const MCODE_IX_t UCLBL_JMP = 7'd44;
+const MCODE_IX_t UCLBL_XAE = 7'd46;
+const MCODE_IX_t UCLBL_DAI = 7'd17;
+const MCODE_IX_t UCLBL_EAR2 = 7'd24;
+const MCODE_IX_t UCLBL__IE = 7'd67;
+const MCODE_IX_t UCLBL_ST = 7'd28;
+const MCODE_IX_t UCLBL_DAE = 7'd21;
+const MCODE_IX_t UCLBL_FETCH = 7'd0;
+const MCODE_IX_t UCLBL_EA = 7'd22;
 typedef logic [6:0] MCODE_PC_t;
 endpackage

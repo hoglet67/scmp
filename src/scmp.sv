@@ -8,12 +8,14 @@ input	logic		rst_n,
 input	logic	[7:0]	D_i,
 input	logic		sb,
 input	logic		sa,
+input	logic		sin,
 
 output  logic	[11:0]	addr,
 output	logic	[7:0]	D_o,
 output  logic		f0,
 output  logic		f1,
 output  logic		f2,
+output	logic		sout,
 
 output	logic		ADS_n,
 output	logic		RD_n,
@@ -81,6 +83,7 @@ output	logic		WR_n
 	logic					alu_hcy;		// half carry - TODO:get rid, move to 4 bit adder
 	logic					alu_ov;
 	logic					alu_cy_sgn;		// sign of "B" operand in last add, TODO: replace with D sign?
+	logic					alu_cy_in;
 
 	logic	bus_F_R;
 	logic	bus_F_I;
@@ -261,7 +264,7 @@ output	logic		WR_n
 		.A(read_bus_lo),
 		.B(reg8_D_Q),
 		.HCy_i(status_hcy),
-		.Cy_i(status_cy),
+		.Cy_i(alu_cy_in),
 		.Ov_i(status_ov),
 		.res(alu_Q),
 		.HCy_o(alu_hcy),
@@ -269,6 +272,19 @@ output	logic		WR_n
 		.Ov_o(alu_ov),
 		.Cy_sgn_o(alu_cy_sgn)
 	);
+
+
+	always_comb begin
+		
+		case (mcode.alu_cy_in)
+			ALU_CY_IN_ZERO:
+				alu_cy_in <= 1'b0;
+			ALU_CY_IN_SIN:
+				alu_cy_in <= sin;
+			default:
+				alu_cy_in <= status_cy;
+		endcase				
+	end
 
 
 

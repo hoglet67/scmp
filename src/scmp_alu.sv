@@ -41,12 +41,6 @@ output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was n
 				Ov_o = res[7] ^ A [7];
 				Cy_sgn_o = B[7];
 				end
-			ALU_OP_ADD_NOCARRYIN:	
-				begin
-				{ Cy_o, res } = A + B;
-				Ov_o = res[7] ^ A [7];
-				Cy_sgn_o = B[7];
-				end
 			ALU_OP_RRL	:	
 				{ res, Cy_o } = { Cy_i, A };
 			ALU_OP_INC	:	

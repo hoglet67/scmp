@@ -474,6 +474,12 @@ sub parseval($$$) {
 			if (!$vv) {
 				($vv) = grep { $vs eq $_->{name} } @{$curs->{named_values}};
 			}
+			if (!$vv) {
+				($vv) = grep { $vs eq $_->{name} } @{$curs->{indices}};
+				if ($vv) {
+					return $vv;
+				}
+			}
 			$vv || die "Cannot find value $vs in section $cur_section in parseval";
 			return parseval($vv->{value}, $cur_section, $curs);
 		} else {
