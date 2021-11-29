@@ -5,6 +5,7 @@ module scmp_microcode (
 input	logic		rst_n,
 input	logic		clk,
 input	logic[7:0]	op,
+input	logic		op2,		//set by D_i[7] during opcode read
 input	logic		zer,		//set when read bus lo == 0
 input	logic		neg,		//set when read bus lo is -ve
 input	logic		minus80,	//set when read bus lo == 0x80 
@@ -57,7 +58,7 @@ output	MCODE_t		mcode
 				
 	assign	c_ea_postinc = op[2] & ~neg;
 
-	assign cond_in = { op[7], op[2:0], c_jmp, c_ea_postinc, minus80, cy, hcy, alu_cy};
+	assign cond_in = { op2, op[2:0], c_jmp, c_ea_postinc, minus80, cy, hcy, alu_cy};
 	assign cond =| ((cond_in ^ i_mcode.cond_xor) & i_mcode.cond_mask);
 
 

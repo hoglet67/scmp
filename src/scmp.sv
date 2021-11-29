@@ -97,11 +97,7 @@ output	logic		WR_n
 		.rst_n(rst_n),
 		.clk(clk),
 		.op(reg8_op_q),
-		.zer(read_bus_lo == 8'd0),
-		.neg(read_bus_lo[7]),
-		.minus80(reg8_D_Q == 8'h80),
-		.cy(status_cy),
-		.hcy(status_hcy),
+		.op2(D_i[7]),			//TODO: this is a bodge, use bus_rd_lo/hi to write into D in reads?
 		.alu_cy(alu_cy),
 
 		.ld_l(ld_l),
