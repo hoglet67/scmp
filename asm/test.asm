@@ -1,5 +1,11 @@
 blank:		.db	0		
 
+		ldi	>callme-1
+		xpah	P1
+		ldi	<callme-1
+		xpal	P1
+		xppc	p1
+
 		ccl
 		ldi	#0x44
 		dai	#0x66
@@ -63,5 +69,18 @@ blank:		.db	0
 
 here:		halt
 		jmp	here
+
+callme:		ien
+		dint
+		ien
+		ldi	#0
+		cas
+		csa
+		ori	#0x83
+		cas
+		nop
+		nop
+		xppc	p1
+
 
 bob:		.db	0

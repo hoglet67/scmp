@@ -135,9 +135,11 @@ output	logic		WR_n
 			status_f0 <= 1'b0;
 		end
 		else begin
-			if (mcode.ctl[CTL_IX_CYOP0])
+			if (mcode.ctl[CTL_IX_IEOP0])
+				status_ie <= reg8_op_q[0];
+			else if (mcode.ctl[CTL_IX_CYOP0])
 				status_cy <= reg8_op_q[0];
-			else if (ld_l[LD_L_IX_STAT]) begin
+			else if (ld_l[LD_L_IX_STATUS]) begin
 				status_cy <= read_bus_lo[7];
 				status_ov <= read_bus_lo[6];
 				status_ie <= read_bus_lo[3];

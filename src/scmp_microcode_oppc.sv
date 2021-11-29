@@ -38,8 +38,18 @@ output	logic			op_dly
 			op_pc <= UCLBL_XPAL;
 		else if (op[7:2] == 6'b001101)
 			op_pc <= UCLBL_XPAH;
+		else if (op[7:2] == 6'b001111)
+			op_pc <= UCLBL_XPPC;
 		else if (op[7:1] == 7'b0000001)
 			op_pc <= UCLBL__CL;
+		else if (op[7:1] == 7'b0000010)
+			op_pc <= UCLBL__IE;
+		else if (op[7:0] == 8'b00000110)
+			op_pc <= UCLBL_CSA;
+		else if (op[7:0] == 8'b00000111)
+			op_pc <= UCLBL_CAS;
+		else if (op[7:0] == 8'b00001000)
+			op_pc <= UCLBL_NOP;
 		else
 			op_pc <= UCLBL_FETCH;
 	end
