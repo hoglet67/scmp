@@ -55,6 +55,9 @@ blank:		.db	0
 		ldi	#0x80
 		adi	#0x80
 
+		ldi	#0
+		dly	#0
+
 		ldi	#5
 		dly	#2
 

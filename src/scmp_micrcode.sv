@@ -12,7 +12,7 @@ input	logic		minus80,	//set when read bus lo == 0x80
 //TODO: carries might all be collapsed into one flag with 4 bit alu
 input	logic		cy,		//cy from status
 input	logic		hcy,		//half carry from hidden status
-input	logic		alu_cy,		//cy from alu (this cycle)	
+input	logic		alu_cy,		//immediate value of alu_cy 
 
 output	LD_L_t		ld_l,
 output	LD_H_t		ld_h,
