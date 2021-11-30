@@ -11,8 +11,6 @@ set_time_format -unit ns -decimal_places 3
 # Create Clock
 #**************************************************************
 
-create_clock -name {cpu_clk} -period 250.000 -waveform { 0.000 125.00 } [get_registers {counter[25]}]
-create_clock -name {counter[14]} -period 327680.0 -waveform { 0.000 163840.0 } [get_registers {counter[14]}]
 create_clock -name {clk_50m} -period 20.000 -waveform { 0.000 10.000 } [get_ports { clk_50m }]
 
 

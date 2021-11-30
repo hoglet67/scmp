@@ -2,7 +2,7 @@
 `define MEM_SIZE 128
 
 module ws_ep4ce10
-#(	parameter C_SIZE = 26,
+#(	parameter C_SIZE = 12,
 	SIM = 0
 )
 (
@@ -15,7 +15,12 @@ output  wire	[7:0]	disp0_seg
 
 	reg	[7:0]	memory[`MEM_SIZE-1:0];
 
-	reg	[C_SIZE-1:0]	counter;
+	wire		clk_1m;
+	wire 		cpu_clk;
+	wire		pll_lock;
+	wire		clk_disp;
+
+	reg	[C_SIZE-1:0]	counter		= 'd0;
 
 	reg	[7:0]	cpu_D_i;
 	wire		cpu_sb;
@@ -31,25 +36,22 @@ output  wire	[7:0]	disp0_seg
 	wire		cpu_RD_n;
 	wire		cpu_WR_n;
 
+	wire		cpu_rst_n;
 
-	always@(posedge clk_50m, negedge rst_n) 
+	always@(posedge clk_1m) 
 	begin
-		if (!rst_n) begin
-			counter <= {C_SIZE{1'b1}};
-		end 
-		else begin
-			counter <= counter - { {C_SIZE-1{1'b0}}, 1'b1 };
-		end
-
+		counter <= counter - { {C_SIZE-1{1'b0}}, 1'b1 };
 	end
 
-	wire cpu_clk;
+	assign clk_disp = counter[C_SIZE-1];
 
-	assign cpu_clk = counter[C_SIZE-1];
+
+	assign	cpu_rst_n = rst_n & pll_lock;
+
 
 	scmp cpu
 	(
-		.rst_n(rst_n),
+		.rst_n(cpu_rst_n),
 		.clk(cpu_clk),
 		.D_i(cpu_D_i),
 		.sb(cpu_sb_i),
@@ -104,7 +106,7 @@ output  wire	[7:0]	disp0_seg
 	assign led_n	= ~ { flag_h, flag_d, flag_i, flag_r };
 
 	seg8_4 disp0(
-		.clk(counter[14]),
+		.clk(clk_disp),
 		.nrst(rst_n),
 		.number({cpu_addr[7:0], (cpu_WR_n)?cpu_D_i:cpu_D_o}),
 		.dot({ flag_h, flag_d, flag_i, flag_r }),
@@ -112,6 +114,12 @@ output  wire	[7:0]	disp0_seg
 		.seg(disp0_seg)
 	);
 
+	pll_main pll(
+		.inclk0(clk_50m),
+		.c0(cpu_clk),
+		.c1(clk_1m),
+		.locked(pll_lock)
+	);
 
 
 endmodule
