@@ -2,7 +2,7 @@
 `define MEM_SIZE 128
 
 
-module scmp_dom
+module ws_epm1270
 #(	parameter C_SIZE = 26,
 	SIM = 0
 )
@@ -70,9 +70,9 @@ output  wire	[7:0]	disp0_seg
 	//load memory
 	initial begin
 		if (SIM)
-			$readmemh("../../asm/test.vhx", memory);
+			$readmemh("../../../../asm/ws_epm1270/test.vhx", memory);
 		else
-			$readmemh("../asm/test.vhx", memory);
+			$readmemh("../../../asm/ws_epm1270/test.vhx", memory);
 
 	end
 

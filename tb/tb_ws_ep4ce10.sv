@@ -1,14 +1,19 @@
+/* A testbench for the ws_epm1270 top level module
+*/
+
+
+
 `timescale	1 ns / 1 ns
 
 
-module tb ();
+module tb_ws_ep4ce10 ();
 
 	reg		clk_50m;
 	reg		rst_n;
 	wire	[3:0]	led_n;
 	
 
-	scmp_dom  
+	ws_epm1270
 	dut
 	(
 		.clk_50m(clk_50m),

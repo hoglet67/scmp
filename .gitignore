@@ -1,10 +1,10 @@
-db/*
-incremental_db/*
-output/*
-output_files/*
-simulation/*
-*.rpt
-simulation/modelsim/msim_transcript
+boards/*/db/*
+boards/*/incremental_db/*
+boards/*/output/*
+boards/*/output_files/*
+boards/*/simulation/*
+boards/*/*.rpt
+boards/*/simulation/modelsim/msim_transcript
 asm/test.bin
 asm/test.hlr
 asm/test.ihx

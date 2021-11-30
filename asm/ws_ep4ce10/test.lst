@@ -1,0 +1,116 @@
+ASxxxx Assembler V05.31  (National Semiconductor SC/MP)                 Page 1
+Hexadecimal [16-Bits]                                 Mon Nov 29 20:55:49 2021
+
+
+
+   0000 00                    1 blank:		.db	0		
+                              2 
+   0001 C4 00         [10]    3 		ldi	>callme-1
+   0003 35            [ 8]    4 		xpah	P1
+   0004 C4 5A         [10]    5 		ldi	<callme-1
+   0006 31            [ 8]    6 		xpal	P1
+   0007 3D            [ 7]    7 		xppc	p1
+                              8 
+   0008 02            [ 5]    9 		ccl
+   0009 C4 44         [10]   10 		ldi	#0x44
+   000B EC 66         [23]   11 		dai	#0x66
+                             12 
+   000D 02            [ 5]   13 		ccl
+   000E C4 23         [10]   14 		ldi	#0x23
+   0010 EC 99         [23]   15 		dai	#0x99
+                             16 
+   0012 02            [ 5]   17 		ccl
+   0013 C4 23         [10]   18 		ldi	#0x23
+   0015 EC 76         [23]   19 		dai	#0x76
+                             20 
+   0017 03            [ 5]   21 		scl
+   0018 C4 23         [10]   22 		ldi	#0x23
+   001A EC 76         [23]   23 		dai	#0x76
+                             24 
+   001C C4 2C         [10]   25 		ldi	#44
+   001E 01            [ 7]   26 		xae
+                             27 
+   001F C2 03         [18]   28 		ld	3(P2)
+   0021 C6 03         [10]   29 		ld	@3(P2)
+   0023 C6 03         [10]   30 		ld	@3(P2)
+   0025 C6 03         [10]   31 		ld	@3(P2)
+   0027 C6 80         [10]   32 		ld	@-128(P2)
+                             33 
+   0029 CA F8         [18]   34 		st	-8(P2)
+   002B CA 08         [18]   35 		st	+8(P2)
+   002D CA 00         [18]   36 		st	(P2)
+   002F CE 09         [18]   37 		st	@9(P2)
+                             38 
+   0031 AA 00         [22]   39 		ild	(p2)
+   0033 AA 00         [22]   40 		ild	(p2)
+   0035 BA 00         [22]   41 		dld	(p2)		
+   0037 BA 00         [22]   42 		dld	(p2)
+                             43 
+   0039 D4 8F         [10]   44 		ani	#0x8F
+   003B DC 20         [10]   45 		ori	#0x20
+   003D E4 88         [10]   46 		xri	#0x88
+                             47 
+                             48 
+                             49 
+   003F C4 99         [10]   50 		ldi	#0x99
+   0041 32            [ 8]   51 		xpal	p2
+   0042 C4 3F         [10]   52 		ldi	#0x3F
+   0044 36            [ 8]   53 		xpah	p2
+                             54 
+   0045 C6 78         [10]   55 		ld	@120(P2)
+ASxxxx Assembler V05.31  (National Semiconductor SC/MP)                 Page 2
+Hexadecimal [16-Bits]                                 Mon Nov 29 20:55:49 2021
+
+
+
+                             56 
+                             57 
+   0047 C4 A8         [10]   58 		ldi	#0xA8
+   0049 58            [ 6]   59 		ore
+   004A C8 1D         [18]   60 		st	bob
+   004C C4 80         [10]   61 		ldi	#0x80
+   004E F4 80         [10]   62 		adi	#0x80
+                             63 
+   0050 C4 00         [10]   64 		ldi	#0
+   0052 8F 00         [13]   65 		dly	#0
+                             66 
+   0054 C4 05         [10]   67 		ldi	#5
+   0056 8F 02         [13]   68 		dly	#2
+                             69 
+   0058 00            [ 8]   70 here:		halt
+   0059 90 FD         [11]   71 		jmp	here
+                             72 
+   005B 05            [ 6]   73 callme:		ien
+   005C 04            [ 6]   74 		dint
+   005D 05            [ 6]   75 		ien
+   005E C4 00         [10]   76 		ldi	#0
+   0060 07            [ 6]   77 		cas
+   0061 06            [ 5]   78 		csa
+   0062 DC 83         [10]   79 		ori	#0x83
+   0064 07            [ 6]   80 		cas
+   0065 08            [ 5]   81 		nop
+   0066 08            [ 5]   82 		nop
+   0067 3D            [ 7]   83 		xppc	p1
+                             84 
+                             85 
+   0068 00                   86 bob:		.db	0
+ASxxxx Assembler V05.31  (National Semiconductor SC/MP)                 Page 3
+Hexadecimal [16-Bits]                                 Mon Nov 29 20:55:49 2021
+
+Symbol Table
+
+    .__.$$$.       =   2710 L   |     .__.ABS.       =   0000 G
+    .__.CPU.       =   0000 L   |     .__.H$L.       =   0001 L
+  0 blank              0000 R   |   0 bob                0068 R
+  0 callme             005B R   |   0 here               0058 R
+
+ASxxxx Assembler V05.31  (National Semiconductor SC/MP)                 Page 4
+Hexadecimal [16-Bits]                                 Mon Nov 29 20:55:49 2021
+
+Area Table
+
+[_CSEG]
+   0 _CODE            size   69   flags C180
+[_DSEG]
+   1 _DATA            size    0   flags C0C0
+
