@@ -1,6 +1,8 @@
 
+FPGA_DIR=../../boards/ws_ep4ce10/
+SIM_DIR=$(FPGA_DIR)/simulation
 
-all:	test.vhx
+all:	test.vhx $(SIM_DIR)/test.hex $(FPGA_DIR)/test.hex
 
 clean:
 	-rm test.ihx test.map test.bin test.rel test.lst test.hlr test.vhx 2>/dev/nul ||:
@@ -16,3 +18,9 @@ test.rel:	test.asm
 
 test.vhx: test.bin
 	/usr/bin/hexdump -v -e '/1 "%02X" " "' test.bin >test.vhx
+	
+$(FPGA_DIR)/test.hex: test.ihx
+	cp test.ihx $(FPGA_DIR)/test.hex
+	
+$(SIM_DIR)/test.hex: test.ihx
+	cp test.ihx $(SIM_DIR)/test.hex

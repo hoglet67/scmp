@@ -15,7 +15,6 @@ output  	[7:0]	disp0_seg,
 output			sout
 );
 
-	logic	[7:0]	memory[`MEM_SIZE-1:0];
 
 	logic		clk_1m;
 	logic		cpu_clk;
@@ -28,6 +27,7 @@ output			sout
 	logic		cpu_sb;
 	logic		cpu_sa;
 
+	logic	[3:0]	cpu_addr_latched;
 	logic	[11:0]	cpu_addr;
 	logic	[7:0]	cpu_D_o;
 	logic		cpu_f0;
@@ -39,6 +39,9 @@ output			sout
 	logic		cpu_WR_n;
 
 	logic		cpu_rst_n;
+
+	logic	[7:0]	rom_D_Q;
+	logic	[7:0]	ram_D_Q;
 
 	always@(posedge clk_1m) 
 	begin
@@ -72,25 +75,36 @@ output			sout
 	);
 
 
-	//load memory
-	initial begin
-		if (SIM)
-			$readmemh("../../../../asm/ws_ep4ce10/test.vhx", memory);
-		else
-			$readmemh("../../../asm/ws_ep4ce10/test.vhx", memory);
+	always_ff@(posedge clk_50m)
+	begin
+		if (!cpu_ADS_n) 
+			cpu_addr_latched <= cpu_D_o[3:0];
 
 	end
 
-	always@(negedge cpu_WR_n) begin
-		memory[cpu_addr & (`MEM_SIZE-1)] = cpu_D_o;
-	end
+	mem_rom_sim rom(
+		.address({cpu_addr_latched[1],cpu_addr}),
+		.q(rom_D_Q),
+		.clock(clk_50m)
+		);
+
+	mem_ram ram(
+		.address({cpu_addr_latched[1],cpu_addr}),
+		.q(ram_D_Q),
+		.clock(clk_50m),
+		.data(cpu_D_o),
+		.wren(!cpu_WR_n & cpu_addr_latched[0])
+		);
 
 
-	always@(cpu_RD_n, cpu_addr) begin
+	always_comb begin
 		if (!cpu_RD_n)
-			cpu_D_i <= memory[cpu_addr & (`MEM_SIZE-1)];
+			if (cpu_addr_latched[0])
+				cpu_D_i <= ram_D_Q;
+			else
+				cpu_D_i <= rom_D_Q;
 		else
-			cpu_D_i <= 8'b11111111;
+			cpu_D_i <= 8'bZZZZZZZZ;
 	end
 
 	logic	flag_h;

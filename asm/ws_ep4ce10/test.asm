@@ -25,6 +25,12 @@ blank:		.db	0
 		ldi	#44
 		xae
 
+		ldi	#0x30
+		xpah	p2
+		ldi	#0
+		xpal	p2
+
+
 		ld	3(P2)
 		ld	@3(P2)
 		ld	@3(P2)
