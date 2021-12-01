@@ -1,4 +1,4 @@
-
+`timescale 1 ns / 1 ns
 `define MEM_SIZE 128
 
 module ws_ep4ce10
@@ -6,39 +6,39 @@ module ws_ep4ce10
 	SIM = 0
 )
 (
-input	wire		clk_50m,
+input			clk_50m,
 			rst_n,
 			sin,
-output  wire	[3:0]	led_n,
-output	wire	[3:0]	disp0_sel,
-output  wire	[7:0]	disp0_seg,
-output	logic		sout
+output  	[3:0]	led_n,
+output		[3:0]	disp0_sel,
+output  	[7:0]	disp0_seg,
+output			sout
 );
 
-	reg	[7:0]	memory[`MEM_SIZE-1:0];
+	logic	[7:0]	memory[`MEM_SIZE-1:0];
 
-	wire		clk_1m;
-	wire 		cpu_clk;
-	wire		pll_lock;
-	wire		clk_disp;
+	logic		clk_1m;
+	logic		cpu_clk;
+	logic		pll_lock;
+	logic		clk_disp;
 
-	reg	[C_SIZE-1:0]	counter		= 'd0;
+	logic	[C_SIZE-1:0]	counter		= 'd0;
 
-	reg	[7:0]	cpu_D_i;
-	wire		cpu_sb;
-	wire		cpu_sa;
+	logic	[7:0]	cpu_D_i;
+	logic		cpu_sb;
+	logic		cpu_sa;
 
-	wire	[11:0]	cpu_addr;
-	wire	[7:0]	cpu_D_o;
-	wire		cpu_f0;
-	wire		cpu_f1;
-	wire		cpu_f2;
+	logic	[11:0]	cpu_addr;
+	logic	[7:0]	cpu_D_o;
+	logic		cpu_f0;
+	logic		cpu_f1;
+	logic		cpu_f2;
 
-	wire		cpu_ADS_n;
-	wire		cpu_RD_n;
-	wire		cpu_WR_n;
+	logic		cpu_ADS_n;
+	logic		cpu_RD_n;
+	logic		cpu_WR_n;
 
-	wire		cpu_rst_n;
+	logic		cpu_rst_n;
 
 	always@(posedge clk_1m) 
 	begin
@@ -93,10 +93,10 @@ output	logic		sout
 			cpu_D_i <= 8'b11111111;
 	end
 
-	reg	flag_h;
-	reg	flag_d;
-	reg	flag_i;
-	reg	flag_r;
+	logic	flag_h;
+	logic	flag_d;
+	logic	flag_i;
+	logic	flag_r;
 
 	always@(posedge cpu_clk, negedge rst_n) begin
 		if (!rst_n)
@@ -118,12 +118,38 @@ output	logic		sout
 		.seg(disp0_seg)
 	);
 
-	pll_main pll(
-		.inclk0(clk_50m),
-		.c0(cpu_clk),
-		.c1(clk_1m),
-		.locked(pll_lock)
-	);
+	generate
+		if (SIM) begin
+			//4m clock
+			initial begin
+				forever begin
+					#125 cpu_clk <= 1'b1;
+					#125 cpu_clk <= 1'b0;
+				end
+			end
+
+			//1m clock
+			initial begin
+				forever begin
+					#500 clk_1m <= 1'b1;
+					#500 clk_1m <= 1'b0;
+				end
+			end
+
+			//lock
+			initial begin
+				pll_lock <= 1'b0;
+				#1000;
+				pll_lock <= 1'b1;
+			end
+		end else
+			pll_main pll(
+				.inclk0(clk_50m),
+				.c0(cpu_clk),
+				.c1(clk_1m),
+				.locked(pll_lock)
+			);
+	endgenerate
 
 
 endmodule
