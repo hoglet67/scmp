@@ -17,3 +17,4 @@ perl/test.vh
 *.sublime-project
 *.sublime-workspace
 *.bak
+*.out.sdc
