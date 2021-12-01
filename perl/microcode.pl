@@ -46,6 +46,7 @@ my $tot_size = 0;
 my $sz_pc;
 
 my @microcode=();
+my @branches=();
 
 while (<$fh_in>) {
 	my $l = $_;
@@ -197,6 +198,7 @@ while (<$fh_in>) {
 				my $ps = $params{$sec};
 				if ($ps && $ps =~ /^@(\w+)$/) {
 					push @mc_vals, "UCLBL_$1-$curs->{size}'d$code_ix";
+					push @branches, {from=>$code_ix, to=>$1};
 				} else {
 					my $v;
 					if (!$ps || !($ps =~ /^UCLBL_/))
@@ -237,6 +239,48 @@ while (<$fh_in>) {
 	}
 }
 
+my $code_bits = 0; 
+while ($code_ix > (1<<$code_bits)) {
+	$code_bits++;
+}
+
+
+printf "microcode length %d (max=0x%02x), bits=%d\n", $code_ix, $code_ix-1, $code_bits;
+
+my $min_bra=0; my $max_bra=0; my $bra_bits = 0;
+for my $b (@branches) {
+	my ($from, $to_label) = ($b->{from}, $b->{to});
+	my $to = %code_labels{$to_label};
+
+	defined($to) || die "No label $to_label"; 
+
+	my $disp = $to-$from;
+	if ($disp < $min_bra) {
+		$min_bra = $disp;
+
+		my $i = 0; 
+		while ($min_bra < -(1<<$i)) {
+			$i++;
+		}
+		if ($i > $bra_bits) {
+			$bra_bits = $i;
+		}
+	}
+	if ($disp > $max_bra) {
+		$max_bra = $disp;
+
+		my $i = 0; 
+		while ($max_bra > ((1<<$i)-1)) {
+			$i++;
+		}
+		if ($i > $bra_bits) {
+			$bra_bits = $i;
+		}
+
+	}
+}
+
+printf "branch range %d<x<%d (0x%02x<x<0x%02x), bits=%d\n", $min_bra, $max_bra, $min_bra & 0xfff, $max_bra, $bra_bits+1;
 
 
 open(my $fh_out_v, ">", $fn_out_v) || die "Cannot open \"$fn_out_v\" for output";
