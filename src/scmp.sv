@@ -283,6 +283,8 @@ output	logic		WR_n
 				alu_cy_in <= 1'b0;
 			ALU_CY_IN_SIN:
 				alu_cy_in <= sin;
+			ALU_CY_IN_RD0:
+				alu_cy_in <= read_bus_lo[0];
 			default:
 				alu_cy_in <= status_cy;
 		endcase				

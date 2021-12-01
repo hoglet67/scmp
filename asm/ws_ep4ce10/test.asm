@@ -1,5 +1,22 @@
 blank:		.db	0		
 
+		; test rotate
+		ldi	#0xF0
+		sr			; should be 78
+		ccl
+		srl			; should be 3C
+		scl
+		srl			; should be 9E
+		rr			; should be 4F
+		rr			; should be A7
+		rr			; should be D3
+		rrl			; should be E9,Cy
+		rrl			; should be F4,Cy
+		rrl			; should be FA,nCy
+		rrl			; should be 7D,0
+		rrl			; should be 3E
+
+
 		ldi	>callme-1
 		xpah	P1
 		ldi	<callme-1

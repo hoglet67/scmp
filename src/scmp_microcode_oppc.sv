@@ -52,6 +52,14 @@ output	logic			op_dly
 			op_pc <= UCLBL_NOP;
 		else if (op[7:0] == 8'b00011001)
 			op_pc <= UCLBL_SIO;
+		else if (op[7:0] == 8'b00011100)
+			op_pc <= UCLBL_SR;
+		else if (op[7:0] == 8'b00011101)
+			op_pc <= UCLBL_SRL;
+		else if (op[7:0] == 8'b00011110)
+			op_pc <= UCLBL_RR;
+		else if (op[7:0] == 8'b00011111)
+			op_pc <= UCLBL_RRL;
 		else
 			op_pc <= UCLBL_FETCH;
 	end
