@@ -8,9 +8,11 @@ module ws_ep4ce10
 (
 input	wire		clk_50m,
 			rst_n,
+			sin,
 output  wire	[3:0]	led_n,
 output	wire	[3:0]	disp0_sel,
-output  wire	[7:0]	disp0_seg
+output  wire	[7:0]	disp0_seg,
+output	logic		sout
 );
 
 	reg	[7:0]	memory[`MEM_SIZE-1:0];
@@ -61,6 +63,8 @@ output  wire	[7:0]	disp0_seg
 		.f0(cpu_f0),
 		.f1(cpu_f1),
 		.f2(cpu_f2),
+		.sin(sin),
+		.sout(sout),
 
 		.ADS_n(cpu_ADS_n),
 		.RD_n(cpu_RD_n),

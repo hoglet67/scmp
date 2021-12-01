@@ -46,7 +46,7 @@ create_clock -name {clk_50m} -period 20.000 -waveform { 0.000 10.000 } [get_port
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name {cpu_clk} -source [get_pins {pll|altpll_component|auto_generated|pll1|inclk[0]}] -duty_cycle 50/1 -multiply_by 4 -divide_by 5 -master_clock {clk_50m} [get_pins {pll|altpll_component|auto_generated|pll1|clk[0]}] 
+create_generated_clock -name {cpu_clk} -source [get_pins {pll|altpll_component|auto_generated|pll1|inclk[0]}] -duty_cycle 50/1 -multiply_by 2 -divide_by 25 -master_clock {clk_50m} [get_pins {pll|altpll_component|auto_generated|pll1|clk[0]}] 
 create_generated_clock -name {clk_1m} -source [get_pins {pll|altpll_component|auto_generated|pll1|inclk[0]}] -duty_cycle 50/1 -multiply_by 1 -divide_by 50 -master_clock {clk_50m} [get_pins {pll|altpll_component|auto_generated|pll1|clk[1]}] 
 
 create_generated_clock -name {clk_disp} -source [get_pins {pll|altpll_component|auto_generated|pll1|clk[1]}] -duty_cycle 50/1 -multiply_by 1 -divide_by 4096 -master_clock {clk_1m} [get_keepers {counter[11]}] 

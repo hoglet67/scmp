@@ -50,6 +50,8 @@ output	logic			op_dly
 			op_pc <= UCLBL_CAS;
 		else if (op[7:0] == 8'b00001000)
 			op_pc <= UCLBL_NOP;
+		else if (op[7:0] == 8'b00011001)
+			op_pc <= UCLBL_SIO;
 		else
 			op_pc <= UCLBL_FETCH;
 	end

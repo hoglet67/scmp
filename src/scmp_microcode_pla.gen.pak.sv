@@ -70,30 +70,33 @@ typedef enum {
 	LD_L_IX_ST_CY	= 'd10,
 	LD_L_IX_ST_OV	= 'd11,
 	LD_L_IX_EA	= 'd12,
-	LD_L_IX_EAM	= 'd13
+	LD_L_IX_EAM	= 'd13,
+	LD_L_IX_SOUT	= 'd14
 } LD_L_ix_t;
-typedef logic [13:0] LD_L_t;
-const	LD_L_t	LD_L_P0	= 14'b00000000000001;
-const	LD_L_t	LD_L_P1	= 14'b00000000000010;
-const	LD_L_t	LD_L_P2	= 14'b00000000000100;
-const	LD_L_t	LD_L_P3	= 14'b00000000001000;
-const	LD_L_t	LD_L_ADDR	= 14'b00000000010000;
-const	LD_L_t	LD_L_ACC	= 14'b00000000100000;
-const	LD_L_t	LD_L_EXT	= 14'b00000001000000;
-const	LD_L_t	LD_L_STATUS	= 14'b00000010000000;
-const	LD_L_t	LD_L_D	= 14'b00000100000000;
-const	LD_L_t	LD_L_OP	= 14'b00001000000000;
-const	LD_L_t	LD_L_ST_CY	= 14'b00010000000000;
-const	LD_L_t	LD_L_ST_OV	= 14'b00100000000000;
-const	LD_L_t	LD_L_EA	= 14'b01000000000000;
-const	LD_L_t	LD_L_EAM	= 14'b10000000000000;
+typedef logic [14:0] LD_L_t;
+const	LD_L_t	LD_L_P0	= 15'b000000000000001;
+const	LD_L_t	LD_L_P1	= 15'b000000000000010;
+const	LD_L_t	LD_L_P2	= 15'b000000000000100;
+const	LD_L_t	LD_L_P3	= 15'b000000000001000;
+const	LD_L_t	LD_L_ADDR	= 15'b000000000010000;
+const	LD_L_t	LD_L_ACC	= 15'b000000000100000;
+const	LD_L_t	LD_L_EXT	= 15'b000000001000000;
+const	LD_L_t	LD_L_STATUS	= 15'b000000010000000;
+const	LD_L_t	LD_L_D	= 15'b000000100000000;
+const	LD_L_t	LD_L_OP	= 15'b000001000000000;
+const	LD_L_t	LD_L_ST_CY	= 15'b000010000000000;
+const	LD_L_t	LD_L_ST_OV	= 15'b000100000000000;
+const	LD_L_t	LD_L_EA	= 15'b001000000000000;
+const	LD_L_t	LD_L_EAM	= 15'b010000000000000;
+const	LD_L_t	LD_L_SOUT	= 15'b100000000000000;
 
-const	LD_L_t	LD_L_NUL	= 14'd0;
+const	LD_L_t	LD_L_NUL	= 15'd0;
 const	LD_L_t	LD_L_ADDR_PC	= LD_L_P0|LD_L_ADDR;
 const	LD_L_t	LD_L_D_ACC	= LD_L_D|LD_L_ACC;
 const	LD_L_t	LD_L_ACC_STAT_CYOV	= LD_L_ACC|LD_L_ST_CY|LD_L_ST_OV;
 const	LD_L_t	LD_L_D_ACC_STAT_CY	= LD_L_D|LD_L_ACC|LD_L_ST_CY;
 const	LD_L_t	LD_L_EAM_ADDR	= LD_L_EAM|LD_L_ADDR;
+const	LD_L_t	LD_L_EXT_SOUT	= LD_L_EXT|LD_L_SOUT;
 // LD_H
 typedef enum {
 	LD_H_IX_P0	= 'd0,
@@ -241,32 +244,37 @@ typedef struct packed {
 } MCODE_t;
 
 typedef logic [7:0] MCODE_IX_t;
-const MCODE_IX_t UCLBL_LDE = 7'd12;
-const MCODE_IX_t UCLBL_NOP = 7'd72;
-const MCODE_IX_t UCLBL_DAD = 7'd13;
-const MCODE_IX_t UCLBL_CAS = 7'd70;
-const MCODE_IX_t UCLBL_ILD = 7'd38;
-const MCODE_IX_t UCLBL_XPPC = 7'd57;
-const MCODE_IX_t UCLBL_XPAL = 7'd49;
-const MCODE_IX_t UCLBL_LDI = 7'd11;
-const MCODE_IX_t UCLBL_DECODE = 7'd6;
-const MCODE_IX_t UCLBL_XPAH = 7'd53;
-const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd26;
-const MCODE_IX_t UCLBL_RESET = 7'd0;
-const MCODE_IX_t UCLBL_DLY = 7'd60;
-const MCODE_IX_t UCLBL_CSA = 7'd69;
-const MCODE_IX_t UCLBL_LD = 7'd7;
-const MCODE_IX_t UCLBL__CL = 7'd66;
-const MCODE_IX_t UCLBL_DLD = 7'd32;
-const MCODE_IX_t UCLBL_HALT = 7'd73;
-const MCODE_IX_t UCLBL_JMP = 7'd44;
-const MCODE_IX_t UCLBL_XAE = 7'd46;
-const MCODE_IX_t UCLBL_DAI = 7'd17;
-const MCODE_IX_t UCLBL_EAR2 = 7'd24;
-const MCODE_IX_t UCLBL__IE = 7'd67;
-const MCODE_IX_t UCLBL_ST = 7'd28;
 const MCODE_IX_t UCLBL_DAE = 7'd21;
-const MCODE_IX_t UCLBL_FETCH = 7'd0;
+const MCODE_IX_t UCLBL_LDE = 7'd12;
+const MCODE_IX_t UCLBL_SRL = 7'd77;
+const MCODE_IX_t UCLBL_NOP = 7'd72;
+const MCODE_IX_t UCLBL_RR = 7'd77;
+const MCODE_IX_t UCLBL__IE = 7'd67;
+const MCODE_IX_t UCLBL_DECODE = 7'd6;
+const MCODE_IX_t UCLBL__CL = 7'd66;
+const MCODE_IX_t UCLBL_RRL = 7'd77;
+const MCODE_IX_t UCLBL_ILD = 7'd38;
+const MCODE_IX_t UCLBL_SR = 7'd77;
+const MCODE_IX_t UCLBL_DLD = 7'd32;
+const MCODE_IX_t UCLBL_LDI = 7'd11;
+const MCODE_IX_t UCLBL_DAI = 7'd17;
+const MCODE_IX_t UCLBL_RESET = 7'd0;
+const MCODE_IX_t UCLBL_CAS = 7'd70;
+const MCODE_IX_t UCLBL_XPAH = 7'd53;
+const MCODE_IX_t UCLBL_DAD = 7'd13;
+const MCODE_IX_t UCLBL_ST = 7'd28;
+const MCODE_IX_t UCLBL_XAE = 7'd46;
+const MCODE_IX_t UCLBL_EAR2 = 7'd24;
+const MCODE_IX_t UCLBL_XPPC = 7'd57;
+const MCODE_IX_t UCLBL_EAPOSTINC1 = 7'd26;
+const MCODE_IX_t UCLBL_CSA = 7'd69;
+const MCODE_IX_t UCLBL_SIO = 7'd76;
+const MCODE_IX_t UCLBL_JMP = 7'd44;
+const MCODE_IX_t UCLBL_XPAL = 7'd49;
 const MCODE_IX_t UCLBL_EA = 7'd22;
+const MCODE_IX_t UCLBL_DLY = 7'd60;
+const MCODE_IX_t UCLBL_HALT = 7'd73;
+const MCODE_IX_t UCLBL_FETCH = 7'd0;
+const MCODE_IX_t UCLBL_LD = 7'd7;
 typedef logic [6:0] MCODE_PC_t;
 endpackage

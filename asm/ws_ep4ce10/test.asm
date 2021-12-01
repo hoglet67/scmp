@@ -67,7 +67,14 @@ blank:		.db	0
 		ldi	#5
 		dly	#2
 
+		ldi	#0x5A
+		xae
+
 here:		halt
+		ldi	#40
+		dly	#0
+		sio
+
 		jmp	here
 
 callme:		ien

@@ -93,6 +93,8 @@ output	logic		WR_n
 	logic	[7:0]				rd_ea_l;
 	logic	[7:0]				rd_ea_h;
 
+	reg					r_sout;
+
 	MCODE_t					mcode;
 
 
@@ -369,6 +371,13 @@ output	logic		WR_n
 	assign	D_o = 	!WR_n 	? reg8_D_Q :
 			!ADS_n	? { bus_F_H, bus_F_D, bus_F_I, bus_F_R, reg8_addr_h_q[7:4] } :
 			{8{1'bz}};
+
+	assign	sout = r_sout;
+
+	always_ff @(posedge clk) begin
+		if (ld_l[LD_L_IX_SOUT]) 
+			r_sout <= alu_cy;
+	end
 
 
 endmodule
