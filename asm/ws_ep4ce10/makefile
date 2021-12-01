@@ -1,26 +1,38 @@
 
-FPGA_DIR=../../boards/ws_ep4ce10/
+FPGA_DIR=../../boards/ws_ep4ce10
 SIM_DIR=$(FPGA_DIR)/simulation
 
-all:	test.vhx $(SIM_DIR)/test.hex $(FPGA_DIR)/test.hex
+TARGETS=test nibl.asxx
+HEX=$(addsuffix .hex,$(TARGETS))
+SIMS=$(addprefix $(SIM_DIR)/,$(HEX))
+FPGAS=$(addprefix $(FPGA_DIR)/,$(HEX))
+
+all:	$(SIMS) $(FPGAS)
 
 clean:
-	-rm test.ihx test.map test.bin test.rel test.lst test.hlr test.vhx 2>/dev/nul ||:
+	-rm $(SIMS) 2>/dev/nul ||:
+	-rm $(FPGAS) 2>/dev/nul ||:
+	-rm $(HEX) 2>/dev/nul ||:
+	-rm $(addsuffix .ihx,$(TARGETS)) 2>/dev/nul ||:
+	-rm $(addsuffix .lst,$(TARGETS)) 2>/dev/nul ||:
+	-rm $(addsuffix .bin,$(TARGETS)) 2>/dev/nul ||:
+	-rm $(addsuffix .rel,$(TARGETS)) 2>/dev/nul ||:
+	-rm $(addsuffix .vhx,$(TARGETS)) 2>/dev/nul ||:
 
-test.bin:	test.ihx
-	hex2bin 0x0000 test.ihx test.bin
+%.bin:	%.ihx
+	hex2bin 0x0000 $< $@
 
-test.ihx:	test.rel
-	aslink -i -m -o test.ihx test.rel -e
+%.ihx:	%.rel
+	aslink -i -m -o $@ $< -e
 
-test.rel:	test.asm
-	asscmp -o -l test.bin test.asm
+%.rel:	%.asm
+	asscmp -o -l $@ $<
 
-test.vhx: test.bin
-	/usr/bin/hexdump -v -e '/1 "%02X" " "' test.bin >test.vhx
+%.vhx: %.bin
+	/usr/bin/hexdump -v -e '/1 "%02X" " "' $< >$@
 	
-$(FPGA_DIR)/test.hex: test.ihx
-	cp test.ihx $(FPGA_DIR)/test.hex
+$(FPGA_DIR)/%.hex: %.ihx
+	cp $< $@
 	
-$(SIM_DIR)/test.hex: test.ihx
-	cp test.ihx $(SIM_DIR)/test.hex
+$(SIM_DIR)/%.hex: %.ihx
+	cp $< $@
