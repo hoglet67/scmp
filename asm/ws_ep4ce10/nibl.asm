@@ -34,26 +34,25 @@
 ; ramarin(AT)teleport.com  
 ;--------------------------------------------------------------------------
 
-        .area   CODE (ABS)
-        .org    0
-;          CPU SC/MP
-;L FUNCTION VAL16, (VAL16 & 0xFF)
-;H FUNCTION VAL16, ((VAL16 >> 8) & 0xFF)
 
-        .macro  JS      P,VAL
-                LDI    >(VAL-1)
-                XPAH   P
-                LDI    <(VAL-1)
-                XPAL   P
-                XPPC   P
-        .endm
+          CPU SC/MP
+L FUNCTION VAL16, (VAL16 & 0xFF)
+H FUNCTION VAL16, ((VAL16 >> 8) & 0xFF)
 
-        .macro  LDPI    P,VAL
-                LDI     >(VAL)
-                XPAH    P
-                LDI     <(VAL)
-                XPAL    P
-        .endm
+JS   MACRO  P,VAL
+       LDI    H(VAL-1)
+       XPAH   P
+       LDI    L(VAL-1)
+       XPAL   P
+       XPPC   P
+     ENDM
+
+LDPI MACRO  P,VAL
+       LDI     H(VAL)
+       XPAH    P
+       LDI     L(VAL)
+       XPAL    P
+     ENDM
 
 ;*****************************************************
 ;*       WE ARE TIED DOWN TO A LANGUAGE WHICH        *
@@ -105,20 +104,21 @@ RNDY     =        -28
 ; ALLOCATION  OF RAM FOR NIBL VARIABLES, STACKS,
 ; AND LINE BUFFER
         
-VARS    =  0x1000 +28            ;NIBL VARIABLES A-Z
-AESTK   =  VARS   +52            ;ARITHMETIC STACK  
-SBRSTK  =  AESTK  +26            ;G0SUB STACK   
-DOSTAK  =  SBRSTK +16            ;DO/UNTIL  STACK   
-FORSTK  =  DOSTAK +16            ;FOR/NEXT  STACK    
-PCSTAK  =  FORSTK +28            ;I.L. CALL STACK    
-LBUF    =  PCSTAK +48            ;LINE BUFFER     
-PGM     =  LBUF   +74            ;USER'S PROGRAM            
+VARS      =  0x1000 +28            ;NIBL VARIABLES A-Z
+AESTK:    =  VARS   +52            ;ARITHMETIC STACK  
+SBRSTK:   =  AESTK  +26            ;G0SUB STACK   
+DOSTAK:   =  SBRSTK +16            ;DO/UNTIL  STACK   
+FORSTK:   =  DOSTAK +16            ;FOR/NEXT  STACK    
+PCSTAK:   =  FORSTK +28            ;I.L. CALL STACK    
+LBUF:     =  PCSTAK +48            ;LINE BUFFER     
+PGM:      =  LBUF   +74            ;USER'S PROGRAM            
       
  
 ;*************************************
 ;*      INITIALIZATION OF NIBL       *
 ;*************************************
           
+ 
           NOP
           LDPI    P2,VARS          ; POINT P2  AT VARIABLES
           LDPI    P1,PGM           ; POINT PI  AT PAGE ONE PROGRAM
@@ -155,9 +155,9 @@ LOOP1:    XPAH    P1
 L001:     LDI     0                ; CLEAR SOME  FLAGS
           ST      RUNMOD(P2)
           ST      LISTNG(P2)
-          LDI     <(BEGIN)         ; INITIALIZE  IL PC  SO  THAT
+          LDI     L(BEGIN)         ; INITIALIZE  IL PC  SO  THAT
           ST      PCLOW(P2)        ; NIBL PROGRAM
-          LDI     >(BEGIN)         ; IS EXECUTED IMMEDIATELY
+          LDI     H(BEGIN)         ; IS EXECUTED IMMEDIATELY
           ST      PCHIGH(P2)
 CLEAR:    LDI     0
           ST      TEMP(P2)
@@ -169,15 +169,15 @@ CLEAR1:   LDI     0                ; SET ALL VARIABLES
           LDI     52
           XRE
           JNZ     CLEAR1
-          LDI     <(AESTK)         ; INITIALIZE  SOME STACKS?
+          LDI     L(AESTK)         ; INITIALIZE  SOME STACKS?
           ST      LSTK(P2)         ; ARITHMETIC STACK,
-          LDI     <(DOSTAK)
+          LDI     L(DOSTAK)
           ST      DOPTR(P2)        ; DO/UNTIL STACK,
-          LDI     <(SBRSTK)
+          LDI     L(SBRSTK)
           ST      SBRPTR(P2)       ; GOSUB STACK,
-          LDI     <(PCSTAK)
+          LDI     L(PCSTAK)
           ST      PCSTK(P2)        ; I. L.  CALL  STACK,
-          LDI     <(FORSTK)
+          LDI     L(FORSTK)
           ST      FORPTR(P2)       ; FOR/NEXT STACK
  
  
@@ -216,14 +216,14 @@ NOJUMP:   XPPC    P3               ;MUST BE AN ML SUBROUTINE
 ;*************************************
  
 ILCALL:   LD      PCSTK(P2)
-          XRI     <(LBUF)         ;CHECK FOR STACK OVERFLOW
+          XRI     L(LBUF)         ;CHECK FOR STACK OVERFLOW
           JNZ     ILC1
           LDI     10         
           JMP     EOA
-ILC1:     XRI     <(LBUF)         ;RESTORE ACCUMULATOR
+ILC1:     XRI     L(LBUF)         ;RESTORE ACCUMULATOR
           XPAL    P3              ;SAVE LOW BYTE OF NEW
           ST      TEMP(P2)        ;  I.L.  PC IN TEMP
-          LDI     >(PCSTAK)       ;POINT P3 AT I.L.
+          LDI     H(PCSTAK)       ;POINT P3 AT I.L.
           XPAH    P3              ;  SUBROUTINE STACK
           XAE                     ;SAVE NEW I.L.  PC HIGH IN EX
           LD      PCLOW(P2)       ;SAVE OLD I.L.  PC ON STACK
@@ -244,7 +244,7 @@ CHEAT1:   JMP     CHEAT
  
 TST:      ST      CHRNUM(P2)      ;CLEAR NUMBER OF CHARS SCANNED
 SCAN:     LD      @1(P1)          ;SLEW OFF SPACES
-          XRI     ' 
+          XRI     ' '
           JZ      SCAN
           LD      @-1(P1)         ;REPOSITION CURSOR
           LD      PCHIGH(P2)      ; POINT P3 AT I.L.  TABLE
@@ -278,7 +278,7 @@ LNEQ:     LD       CHRNUM(P2)       ;RESTORE P1 TO
 ;*        I.L.  SUBROUTINE RETURN    *
 ;*************************************
  
-RTN:     LDI      >(PCSTAK)        ; POINT  P3  AT I.L.  PC STACK
+RTN:     LDI      H(PCSTAK)        ; POINT  P3  AT I.L.  PC STACK
          XPAH     P3
          LD       PCSTK(P2)
          XPAL     P3
@@ -297,12 +297,12 @@ EOA:     JMP      EO
 ;*************************************
  
 SAV:     LD      SBRPTR(P2)
-         XRI     <(DOSTAK)       ;CHECK FOR  MORE
+         XRI     L(DOSTAK)       ;CHECK FOR  MORE
          JZ      SAV2            ;  THAN 8 SAVES
          ILD     SBRPTR(P2)
          ILD     SBRPTR(P2)
          XPAL    P3              ;SET  P3 TO
-         LDI     >(SBRSTK)       ;  SUBROUTINE STACK TOP.
+         LDI     H(SBRSTK)       ;  SUBROUTINE STACK TOP.
          XPAH    P3
          LD      RUNMOD(P2)      ;IF IMMEDIATE MODE,
          JZ      SAV1            ; SAVE NEGATIVE  ADDRESS.
@@ -324,11 +324,11 @@ SAV2:    LDI     10              ; ERROR: MORE THAN
 ;*************************************
  
 DONE:    LD      @1(P1)          ;SKIP SPACES  
-         XRI     ' 
+         XRI     ' '
          JZ      DONE
-         XRI     ('  | 0x0D)    ;IS IT CARRIAGE RETURN?
+         XRI     ' ' | 0x0D      ;IS IT CARRIAGE RETURN?
          JZ      DONE1           ;YES - RETURN
-         XRI     0x37            ;IS CHAR A ':?
+         XRI     0x37            ;IS CHAR A ':'?
          JNZ     DONE2           ;NO - ERROR
 DONE1:   XPPC    P3              ;YES - RETURN
 DONE2:   LDI     4
@@ -340,14 +340,14 @@ DONE2:   LDI     4
 ;*************************************
  
 RSTR:    LD      SBRPTR(P2)
-         XRI     <(SBRSTK)       ; CHECK FOR RETURN
+         XRI     L(SBRSTK)       ; CHECK FOR RETURN
          JNZ     RSTR1           ;  W/0 GOSUB
          LDI     9
 EO:      JMP     El              ; REPORT THE ERROR
 RSTR1:   DLD     SBRPTR(P2)
          DLD     SBRPTR(P2)      ;POP GOSUB STACK,
          XPAL    P3              ;  PUT PTR INTO P3
-         LDI     >(SBRSTK)
+         LDI     H(SBRSTK)
          XPAH    P3
          LD      1(P3)           ;IF ADDRESS NEGATIVE,
          JP      RSTR2           ;  SUBROUTINE WAS CALLED
@@ -381,7 +381,7 @@ XFER1:   LDI      1               ;SET  RUN  MODE  TO  1
  
 PRS:     LDPI     P3,PUTC-1       ;POINT  P3 AT PUTC ROUTINE
          LD       @1(P1)          ;L0AD NEXT  CHAR
-         XRI      '"             ;IF  ",  END  OF
+         XRI      '"'             ;IF  ",  END  OF
          JZ       XI              ;  STRING
          XRI      0x2F            ;IF CR, ERROR
          JZ       PRS1
@@ -400,7 +400,7 @@ El:      JMP      E2
 ; CONVERSION ROUTINE  IN VOL. 1, #1 OF "DR. DOBB'S JOURNAL",
 ; BUT IS MUCH MORE  OBSCURE BECAUSE OF THE STACK MANIPULATION.
  
-PRN:      LDI      >(AESTK)        ; POINT  P3 AT A. E. STACK
+PRN:      LDI      H(AESTK)        ; POINT  P3 AT A. E. STACK
           XPAH     P3
           ILD      LSTK(P2)
           ILD      LSTK(P2)
@@ -415,7 +415,7 @@ PRN:      LDI      >(AESTK)        ; POINT  P3 AT A. E. STACK
           ST       5(P3)           ;FIRST  CHAR IS A  FLAG (-1)
           LD       -3(P3)          ;CHECK  IF NUMBER  IS NEGATIVE
           JP      LPNOS
-          LDI     '-             ;PUT '- ON STACK,  AND NEGATE
+          LDI     '-'             ;PUT '-' ON STACK,  AND NEGATE
           ST      4(P3)           ;  THE NUMBER
           LDI     0
           SCL
@@ -425,7 +425,7 @@ PRN:      LDI      >(AESTK)        ; POINT  P3 AT A. E. STACK
           CAD     -3(P3)
           ST      -3(P3)
           JMP     XI              ; GO DO DIVISION BY  10
-LPNOS:    LDI     '              ;IF POSITIVE, PUT '  ON
+LPNOS:    LDI     ' '             ;IF POSITIVE, PUT ' ' ON
           ST      4(P3)           ;  STACK BEFORE DIVISION
 X4:       JMP     XI
 E2:       JMP     ERR1
@@ -436,19 +436,19 @@ E2:       JMP     ERR1
 PRN1:     ILD     LSTK(P2)        ; POINT P1  AT A. E.  STACK
           ILD     LSTK(P2)
           XPAL    P1
-          LDI     >(AESTK)
+          LDI     H(AESTK)
           XPAH    P1
           ILD     CHRNUM(P2)      ;INCREMENT CHARACTER STACK
           XAE                     ;  POINTER,  PUT IN EX.  REG.
           LD      1(P1)           ;GET REMAINDER FROM DIVIDE,
-          ORI     '0
+          ORI     '0'
           ST      EREG(P1)        ;PUT IT ON THE STACK
           LD      -3(P1)          ;IS THE QUOTIENT ZERO YET?
           OR      -4(P1)
           JZ      QPRNT           ;YES - GO PRINT THE NUMBER
-          LDI     >(PRNUM1)       ;N0 - CHANGE THE I. L.  PC
+          LDI     H(PRNUM1)       ;N0 - CHANGE THE I. L.  PC
           ST      PCHIGH(P2)      ;  SO THAT DIVIDE IS
-          LDI     <(PRNUM1)       ;  PERFORMED AGAIN
+          LDI     L(PRNUM1)       ;  PERFORMED AGAIN
           ST      PCLOW(P2)
           JMP     X4              ;G0 DO DIVISION BY 10 AGAIN
 QPRNT:    LDPI    P3,PUTC-1       ;POINT P3 AT PUTC ROUTINE
@@ -463,11 +463,11 @@ QPRNT2:   LD      @EREG(P1)       ;POINT P3 AT FIRST CHAR
 LOOP3:    XPPC    P3              ;PRINT THE CHARACTER
           LD      @-1(P1)         ;GET NEXT CHARACTER
           JP      LOOP3           ;REPEAT UNTIL = -1
-          LDI     <(AESTK)
+          LDI     L(AESTK)
           ST      LSTK(P2)        ; CLEAR THE A. E.  STACK
           LD      LISTNG(P2)      ;PRINT A TRAILING SPACE
           JNZ     X4              ;  IF NOT LISTING PROGRAM
-          LDI     ' 
+          LDI     ' '
           XPPC    P3
           JMP     X4
  
@@ -517,13 +517,13 @@ QQ2:      LD      @1(P1)           ;GET CHARACTER
           JP      QQ2              ;NO- REPEAT LOOP
 QQ3:      LD      RUNMOD(P2)       ;DON'T PRINT LINE #
           JZ      FIN              ;  IF IMMEDIATE MODE
-          LDI     ' 
+          LDI     ' '
           XPPC    P3               ;SPACE
-          LDI     'A              ;AT
+          LDI     'A'              ;AT
           XPPC    P3
-          LDI     'T
+          LDI     'T'
           XPPC    P3
-          LDI     >(AESTK)         ; POINT P3 AT A. E. STACK
+          LDI     H(AESTK)         ; POINT P3 AT A. E. STACK
           XPAH    P3
           ILD     LSTK(P2)
           ILD     LSTK(P2)
@@ -532,9 +532,9 @@ QQ3:      LD      RUNMOD(P2)       ;DON'T PRINT LINE #
           ST      -1(P3)          ;PUT ON STACK
           LD      LOLINE(P2)      ; GET LOW BYTE OF LINE #
           ST      -2(P3)          ;PUT ON STACK
-          LDI     <(ERRNUM)       ; GO TO PRN
+          LDI     L(ERRNUM)       ; GO TO PRN
           ST      PCLOW(P2)
-          LDI     >(ERRNUM)                                  
+          LDI     H(ERRNUM)                                  
           ST      PCHIGH(P2)
 X5A:      JMP     X5
  
@@ -561,21 +561,21 @@ NXT:    LD      RUNMOD(P2)      ; IF IN EDIT MODE,
         ST      HILINE(P2)      ;SAVE IT
         LD      @2(P1)          ;GET LOW BYTE OF LINE #,  SKIP
         ST      LOLINE(P2)      ;  LINE LENGTH BYTE
-NXT1:   LDI     >(STMT)         ; GO TO  STMT  IN IL TABLE
+NXT1:   LDI     H(STMT)         ; GO TO  STMT  IN IL TABLE
         ST      PCHIGH(P2)
-        LDI     <(STMT)
+        LDI     L(STMT)
         ST      PCLOW(P2)
         XPPC    P3
  
 FIN:    LDI     0               ;*** FINISH EXECUTION ***
         ST      RUNMOD(P2)      ; CLEAR RUN MODE
-        LDI     <(AESTK)        ; CLEAR ARITHMETIC STACK
+        LDI     L(AESTK)        ; CLEAR ARITHMETIC STACK
         ST      LSTK(P2)
-        LDI     <(START)        ; MODIFY I.L.  PC TO RETURN
+        LDI     L(START)        ; MODIFY I.L.  PC TO RETURN
         ST      PCLOW(P2)       ;  TO PROMPT FOR COMMAND
-        LDI     >(START)
+        LDI     H(START)
         ST      PCHIGH(P2)
-        LDI     <(PCSTAK)
+        LDI     L(PCSTAK)
         ST      PCSTK(P2)
         JMP     X5A
                                   ;*** START EXECUTION ***
@@ -584,11 +584,11 @@ STRT:   ILD     RUNMOD(P2)      ;RUN MODE = 1
         XPAH    P1              ;  START OF NIBL PROGRAM
         LD      TEMP3(P2)
         XPAL    P1
-        LDI     <(SBRSTK)       ;EMPTY SOME STACKS:
+        LDI     L(SBRSTK)       ;EMPTY SOME STACKS:
         ST      SBRPTR(P2)      ;  GOSUB STACK,
-        LDI     <(FORSTK)
+        LDI     L(FORSTK)
         ST      FORPTR(P2)      ;  FOR STACK
-        LDI     <(DOSTAK)
+        LDI     L(DOSTAK)
         ST      DOPTR(P2)       ;  & DO/UNTIL STACK
         XPPC    P3              ;RETURN
 X6:     JMP     X5A
@@ -602,7 +602,7 @@ E4:     JMP     E3A
 LST:    LD      (P1)            ;CHECK FOR END OF FILE
         XRI     0x80
         JP      LST2
-        LDI     >(AESTK)        ;GET LINE NUMBER ONTO STACK
+        LDI     H(AESTK)        ;GET LINE NUMBER ONTO STACK
         XPAH    P3
         ILD     LSTK(P2)
         ILD     LSTK(P2)
@@ -635,9 +635,9 @@ LST5:   LDI     0x0D            ; CARRIAGE RETURN
         LDI     0x0A              ;LINE FEED
         XPPC    P3
         CCL
-        LDI     <(LIST3)
+        LDI     L(LIST3)
         ST      PCLOW(P2)
-        LDI     >(LIST3)
+        LDI     H(LIST3)
         ST      PCHIGH(P2)
         JMP     LST             ;GET NEXT LINE
  
@@ -646,7 +646,7 @@ LST5:   LDI     0x0D            ; CARRIAGE RETURN
 ;*          ADD AND SUBTRACT         *
 ;*************************************
  
-ADD:    LDI     >(AESTK)         ;SET P3  TO CURRENT
+ADD:    LDI     H(AESTK)         ;SET P3  TO CURRENT
         XPAH    P3               ;  STACK  LOCATION
         DLD     LSTK(P2)
         DLD     LSTK(P2)
@@ -660,7 +660,7 @@ ADD:    LDI     >(AESTK)         ;SET P3  TO CURRENT
         ST      -1(P3)
 X7:     JMP     X6A
  
-SUB:    LDI     >(AESTK)         ;SET P3  TO CURRENT
+SUB:    LDI     H(AESTK)         ;SET P3  TO CURRENT
         XPAH    P3               ;  STACK  LOCATION
         DLD     LSTK(P2)
         DLD     LSTK(P2)
@@ -679,7 +679,7 @@ SUB:    LDI     >(AESTK)         ;SET P3  TO CURRENT
 ;*           NEGATE                  *
 ;*************************************
  
-NEG:     LDI     >(AESTK)        ;SET P3  TO CURRENT
+NEG:     LDI     H(AESTK)        ;SET P3  TO CURRENT
          XPAH    P3              ;  STACK  LOCATION
          LD      LSTK(P2)
          XPAL    P3
@@ -698,7 +698,7 @@ E6:      JMP     E5
 ;*          MULTIPLY                 *
 ;*************************************
  
-MUL:    LDI     >(AESTK)        ;SET P3 TO CURRENT
+MUL:    LDI     H(AESTK)        ;SET P3 TO CURRENT
         XPAH    P3              ;  STACK LOCATION
         LD      LSTK(P2)
         XPAL    P3              ; DETERMINE SIGN OF PRODUCT, 
@@ -786,7 +786,7 @@ MMEXIT: LD      0(P3)            ;PUT PRODUCT ON TOP
 ;*            DIVIDE                 *
 ;*************************************
  
-DIV:    LDI     >(AESTK)
+DIV:    LDI     H(AESTK)
         XPAH    P3
         LD      LSTK(P2)  
         XPAL    P3
@@ -889,7 +889,7 @@ QDEND:  DLD     LSTK(P2)        ;DECREMENT THE  STACK POINTER,
 ;*         STORE VARIABLE            *
 ;*************************************
  
-STORE:  LDI     >(AESTK)      ;SET P3 TO STACK
+STORE:  LDI     H(AESTK)      ;SET P3 TO STACK
         XPAH     P3
         LD      LSTK(P2)
         XPAL     P3
@@ -913,14 +913,14 @@ X10:    JS       P3,EXECIL
 ;*************************************
  
 TSTVAR:  LD      @1(P1)
-         XRI     '              ;SLEW OFF SPACES
+         XRI     ' '             ;SLEW OFF SPACES
          JZ      TSTVAR 
          LD      -1(P1)          ;CHARACTER IN QUESTION
          SCL
-         CAI     'Z+1           ;SUBTRACT 'Z+l
+         CAI     'Z'+1           ;SUBTRACT 'Z'+l
          JP      TV_FAIL         ;N0T VARIABLE IF POSITIVE
          SCL
-         CAI     'A-'Z-1       ;SUBTRACT 'A
+         CAI     'A'-'Z'-1       ;SUBTRACT 'A'
          JP      TVMAYBE         ;IF POS,  MAY BE VARIABLE
 TV_FAIL: LD      @-1(P1)         ;BACKSPACE CURSOR
          LD      PCLOW(P2)       ;GET TEST-FAIL ADDRESS
@@ -935,12 +935,12 @@ TV_FAIL: LD      @-1(P1)         ;BACKSPACE CURSOR
 TVMAYBE: XAE                     ;SAVE VALUE (0-25)
          LD      (P1)            ;CHECK FOLLOWING CHAR
          SCL                     ;MUST NOT BE A LETTER
-         CAI     'Z+1           ;OTHERWISE WE'D BE LOOKING
+         CAI     'Z'+1           ;OTHERWISE WE'D BE LOOKING
          JP      TV_OK           ;AT A KEYWORD, NOT A VARIABLE
          SCL
-         CAI     'A-'Z-1
+         CAI     'A'-'Z'-1
          JP      TV_FAIL
-TV_OK:   LDI     >(AESTK)        ;SET PS TO CURRENT
+TV_OK:   LDI     H(AESTK)        ;SET PS TO CURRENT
          XPAH    P3              ;  STACK LOCATION
          ILD     LSTK(P2)        ;INCR STACK POINTER
          XPAL    P3
@@ -962,7 +962,7 @@ TV_OK:   LDI     >(AESTK)        ;SET PS TO CURRENT
 ;*      IND - EVALUATE A VARIABLE    *
 ;*************************************
  
-IND:      LDI     >(AESTK)        ;SET P3 TO STACK
+IND:      LDI     H(AESTK)        ;SET P3 TO STACK
           XPAH    P3
           ILD     LSTK(P2)
           XPAL    P3
@@ -996,7 +996,7 @@ GTR:     LDI     5                ;  THE PDP-11.  THESE PSEUDO-
 GEQ:     LDI     6                ;  WHETHER THE PARTICULAR
                                   ; RELATION IS SATISFIED OR NO
 CMP:     ST      NUM(P2)
-         LDI     >(AESTK)         ;SET P3 -> ARITH STACK
+         LDI     H(AESTK)         ;SET P3 -> ARITH STACK
          XPAH    P3
          DLD     LSTK(P2)
          DLD     LSTK(P2)
@@ -1084,7 +1084,7 @@ OROP:   LDI     2
         JMP     AON1
 NOTOP:  LDI     3
 AON1:   ST      NUM(P2)                                        
-        LDI     >(AESTK)        ;SET P3 -> ARITH. STACK
+        LDI     H(AESTK)        ;SET P3 -> ARITH. STACK
         XPAH    P3
         DLD     LSTK(P2)
         DLD     LSTK(P2)
@@ -1150,30 +1150,30 @@ E8:     ST      NUM(P2)          ;ERROR IF RUN MODE = 0
 HEX:    ILD     LSTK(P2)        ;POINT P3 AT ARITH STACK
         ILD     LSTK(P2)
         XPAL    P3
-        LDI     >(AESTK)
+        LDI     H(AESTK)
         XPAH    P3
         LDI      0              ;NUMBER INITIALLY ZERO
         ST      -1(P3)          ;PUT IT ON STACK
         ST      -2(P3)
         ST      NUM(P2)         ;ZERO NUMBER OF DIGITS
 HSKIP:  LD      @1(P1)          ;SKIP ANY SPACES
-        XRI     ' 
+        XRI     ' '
         JZ      HSKIP
         LD      @-1(P1)
 LOOP7:  LD      (P1)            ;GET A CHARACTER
         SCL
-        CAI     '9+1           ;CHECK FOR A NUMERIC CHAR
+        CAI     '9'+1           ;CHECK FOR A NUMERIC CHAR
         JP      HLETR
         SCL
-        CAI     '0-'9-1       ;IF NUMERIC, SHIFT NUMBER
+        CAI     '0'-'9'-1       ;IF NUMERIC, SHIFT NUMBER
         JP      HENTER          ;  AND ADD NEW HEX DIGIT
         JMP     HEND
 X12C:   JMP     X12B
 HLETR:  SCL                     ;CHECK FOR HEX LETTER
-        CAI     'G-'9-1
+        CAI     'G'-'9'-1
         JP      HEND
         SCL
-        CAI     'A-'G
+        CAI     'A'-'G'
         JP      HX0K
         JMP     HEND
 HX0K:   CCL                     ;ADD 10 TO GET TRUE VALUE
@@ -1213,14 +1213,14 @@ E8B:    JMP     E8
 ;  WITH I.L. CONTROL PASSING TO THE NEXT INSTRUCTION.
  
 TSTNUM: LD      @1(P1)
-        XRI     '              ;  SKIP OVER ANY SPACES
+        XRI     ' '             ;  SKIP OVER ANY SPACES
         JZ      TSTNUM
         LD      @-1(P1)         ;GET FIRST CHAR
         SCL                     ;TEST FOR DIGIT
-        CAI     '9+1
+        CAI     '9'+1
         JP      TNABRT
         SCL
-        CAI     '0-'9-1
+        CAI     '0'-'9'-1
         JP      TNL1
 TNABRT: LD      PCLOW(P2)        ;CET TEST-FAIL ADDRESS
         XPAL    P3               ;FROM  I. L. TABLE
@@ -1241,7 +1241,7 @@ TNRET:  LDI     2                ;SKIP OVER ONE IL INSTRUCTION
 X13:    JMP     X12C
 ESA:    JMP     E8B
 TNL1:   XAE                      ;SAVE DIGIT IN  EX  REG
-        LDI     >(AESTK)         ;POINT  P3 AT AE STACK
+        LDI     H(AESTK)         ;POINT  P3 AT AE STACK
         XPAH    P3
         ILD     LSTK(P2)
         ILD     LSTK(P2)
@@ -1253,10 +1253,10 @@ TNL1:   XAE                      ;SAVE DIGIT IN  EX  REG
 LOOP8:  LD      @1(P1)           ;GET NEXT  CHAR
         LD      (P1)
         SCL                      ;TEST IF IT IS DIGIT
-        CAI     '9+1
+        CAI     '9'+1
         JP      TNRET            ;RETURN  IF IT ISN'T
         SCL
-        CAI     '0-'9-1
+        CAI     '0'-'9'-1
         JP      TNL2
         JMP     TNRET
 TNL2:   XAE                      ;SAVE DIGIT
@@ -1318,15 +1318,15 @@ GETL:   LDPI    P1,LBUF        ;SET P1  TO LBUF
         LDPI    P3,PUTC-1      ;POINT P3 AT PUTC ROUTINE
         LD      RUNMOD(P2)     ;PRINT  '? '  IF RUNNING
         JZ      GETL0          ;  (I.E. DURING  'INPUT')
-        LDI     '?
+        LDI     '?'
         XPPC     P3
-        LDI     ' 
+        LDI     ' '
         XPPC    P3
         JMP     GETL1
-GETL0:  LDI     '>             ; OTHERWISE PRINT '>
+GETL0:  LDI     '>'             ; OTHERWISE PRINT '>'
         XPPC    P3   
 GETL1:  JS      P3,GECO         ;GET CHARACTER
-        LDI     <(PUTC)-1       ; POINT PS AT PUTC AGAIN
+        LDI     L(PUTC)-1       ; POINT PS AT PUTC AGAIN
         XPAL    P3
         LDE                     ;GET TYPED CHAR
         JZ      GETL1           ; IGNORE NULLS
@@ -1336,7 +1336,7 @@ GETL1:  JS      P3,GECO         ;GET CHARACTER
         XRI     0x0D            ; CHECK FOR CR
         JZ      GETLCR
         LDE
-        XRI     'O+0x10        ; CHECK FOR SHIFT/0
+        XRI     'O'+0x10        ; CHECK FOR SHIFT/0
         JZ      GETRUB
         LDE                     ;CHECK FOR CTRL/H
         XRI     8
@@ -1347,15 +1347,15 @@ GETL1:  JS      P3,GECO         ;GET CHARACTER
         LDE
         XRI     3               ;CHECK FOR CTRL/C
         JNZ     GENTR
-        LDI     '^             ;ECHO CONTROL/C AS ^C
+        LDI     '^'             ;ECHO CONTROL/C AS ^C
         XPPC    P3
-        LDI     'C
+        LDI     'C'
         XPPC    P3
         LDI     14              ; CAUSE A BREAK
         JMP     E9
-GXU:    LDI     '^             ;ECHO CONTROL/U AS ^U
+GXU:    LDI     '^'             ;ECHO CONTROL/U AS ^U
         XPPC    P3
-        LDI     'U
+        LDI     'U'
         XPPC    P3
         LDI     0x0D            ; PRINT CR/LF
         XPPC    P3                                          
@@ -1374,7 +1374,7 @@ GENTR:  LDE
         XPPC    P3              ; PRINT IT
         JMP     GETLCR          ; STORE IT IN LBUF
 E10:    JMP     E9                                              
-GXH:    LDI     '              ; BLANK OUT THE CHARACTER
+GXH:    LDI     ' '             ; BLANK OUT THE CHARACTER
         XPPC    P3
         LDI     8               ; PRINT ANOTHER BACKSPACE
         XPPC    P3
@@ -1387,9 +1387,9 @@ GETLCR: LDE
         ST      @1(P1)          ;STORE CR IN LBUF
         LDI     0x0A            ;PRINT LINE FEED
         XPPC    P3
-        LDI     >(LBUF)         ;SET P1 TO BEGIN-
+        LDI     H(LBUF)         ;SET P1 TO BEGIN-
         XPAH    P1              ;  NING OF LBUF
-        LDI     <(LBUF)
+        LDI     L(LBUF)
         XPAL    P1
 X16:    JMP     X15
  
@@ -1398,9 +1398,9 @@ X16:    JMP     X15
 ;*     EVAL -- GET MEMORY CONTENTS   *
 ;*************************************
  
- ;  THIS ROUTINE IMPLEMENTS THE  '@ OPERATOR IN EXPRESSIONS
+ ;  THIS ROUTINE IMPLEMENTS THE  '@' OPERATOR IN EXPRESSIONS
  
-EVAL:   LDI     >(AESTK)
+EVAL:   LDI     H(AESTK)
         XPAH    P3
         LD      LSTK(P2)
         XPAL    P3              ; P3 -> ARITH STACK  
@@ -1426,9 +1426,9 @@ EVAL:   LDI     >(AESTK)
 ;*************************************
  
 ;  THIS ROUTINE IMPLEMENTS THE STATEMENT:
-;      '@  FACTOR  '=  REL-EXP
+;      '@'  FACTOR  '='  REL-EXP
  
-MOVE:   LDI     >(AESTK)
+MOVE:   LDI     H(AESTK)
         XPAH    P3
         LD      LSTK(P2)
         XPAL    P3              ;P3 -> ARITH STACK
@@ -1462,7 +1462,7 @@ Ell:    JMP     E10
 ;  BY A CARRIAGE RETURN.   THE LAST LINE IN  THE TEXT IS
 ;  FOLLOWED BY TWO CONSECUTIVE BYTES OF XFF.
                       
-INSRT:  LDI     >(AESTK)        ;POINT P3  AT  AE STACK,
+INSRT:  LDI     H(AESTK)        ;POINT P3  AT  AE STACK,
         XPAH    P3              ;WHICH HAS THE LINE #
         LD      LSTK(P2)        ;ON IT
         XPAL    P3
@@ -1510,11 +1510,11 @@ E12:    JMP      Ell
 AMOVE:  LDE                       ;IF DISPLACEMENT AND LENGTH
         OR       CHRNUM(P2)       ;  OF NEW LINE ARE 0,  RETURN
         JZ       X19
-        LDI      <(DOSTAK)        ; CLEAR SOME STACKS
+        LDI      L(DOSTAK)        ; CLEAR SOME STACKS
         ST       DOPTR(P2)
-        LDI      <(SBRSTK)
+        LDI      L(SBRSTK)
         ST       SBRPTR(P2)
-        LDI      <(FORSTK)                                    
+        LDI      L(FORSTK)                                    
         ST       FORPTR(P2)
         LDE
         JZ       INSAD0           ;DON'T NEED TO MOVE LINES
@@ -1602,7 +1602,7 @@ E13:    JMP     E12A
 POPAE:  DLD     LSTK(P2)        ;THIS ROUTINE POP  THE  A. E.
         DLD     LSTK(P2)        ;STACK, AND PUTS  THE  RESULT
         XPAL    P3              ;INTO  LO(P2) AND  HI(P2)
-        LDI     >(AESTK)
+        LDI     H(AESTK)
         XPAH    P3
         LD      (P3)
         ST      LO(P2)
@@ -1618,7 +1618,7 @@ POPAE:  DLD     LSTK(P2)        ;THIS ROUTINE POP  THE  A. E.
 UNTIL:  LD      DOPTR(P2)       ; CHECK  FOR DO-STACK  UNDERFLOW
         XAE
         LDE 
-        XRI     <(DOSTAK)
+        XRI     L(DOSTAK)
         JNZ     UNTL1
         LDI     15
         JMP     E13                                         
@@ -1630,7 +1630,7 @@ UNTL1:  LD      LO(P2)          ; CHECK  FOR EXPRESSION  = 0
         JMP     X20             ;CONTINUE TO NEXT  STMT
 SREDO:  LDE                     ; POINT  P3 AT DO-STACK
         XPAL    P3
-        LDI     >(DOSTAK)
+        LDI     H(DOSTAK)
         XPAH    P3
         LD      -1(P3)          ;LOAD P1 FROM DO STACK
         XPAH    P1
@@ -1643,7 +1643,7 @@ SREDO:  LDE                     ; POINT  P3 AT DO-STACK
 ;*************************************
  
 ; THIS ROUTINE IMPLEMENTS THE STATEMENT:
-;      'STAT' ='  REL-EXP
+;      'STAT' '='  REL-EXP
  
 MOVESR:  LD      LO(P2)          ;LOW BYTE GOES TO STATUS
          ANI     0xF7            ;  BUT WITH IEN BIT CLEARED
@@ -1656,7 +1656,7 @@ E14:     JMP     E13
 ;*         STAT FUNCTION             *
 ;*************************************
  
-STATUS: LDI     >(AESTK)
+STATUS: LDI     H(AESTK)
         XPAH    P3              ;POINT P3 AT AE STACK
         ILD     LSTK(P2)
         ILD     LSTK(P2)
@@ -1691,14 +1691,14 @@ CALLML: LD      HI(P2)          ;GET HIGH BYTE OF ADDRESS
 ;  THIS ROUTINE IMPLEMENTS THE 'DO' STATEMENT.
  
 SAVEDO: LD      DOPTR(P2)       ;CHECK FOR STACK OVERFLOW
-        XRI     <(FORSTK)
+        XRI     L(FORSTK)
         JNZ     SVDO1
         LDI     10
 E15:    JMP     E14
 SVDO1:  ILD     DOPTR(P2)
         ILD     DOPTR(P2)
         XPAL    P3
-        LDI     >(DOSTAK)
+        LDI     H(DOSTAK)
         XPAH    P3              ;P3 -> TOP OF DO STACK
         XPAH    P1              ;SAVE CURSOR ON THE STACK
         ST      -1(P3)
@@ -1729,7 +1729,7 @@ TOP2:   LD      @2(P3)          ; P3 := P3 + 2
         ILD     LSTK(P2)        ;  OLD P3 (WHICH CONTAINS TOP)
         XPAL    P3              ;  ON IT SOMEHOW
         XAE
-        LDI     >(AESTK)
+        LDI     H(AESTK)
         XPAH    P3
         ST      -1(P3)
         LDE
@@ -1753,7 +1753,7 @@ IGNORE: LD      @1(P1)          ;SCAN TIL WE'RE PAST
  
 MODULO: LD      LSTK(P2)        ;THIS ROUTINE MUST  BE
         XPAL    P3              ;  IMMEDIATELY AFTER A
-        LDI     >(AESTK)        ;  DIVIDE TO WORK CORRECTLY
+        LDI     H(AESTK)        ;  DIVIDE TO WORK CORRECTLY
         XPAH    P3
         LD      3(P3)           ;GET LOW BYTE OF REMAINDER
         ST      -2(P3)          ;PUT ON STACK
@@ -1798,7 +1798,7 @@ LOOP9:  LD      RNDX(P2)        ;MULTIPLY  THE SEEDS BY 9
         ST      RNDX(P2)        ;  THE NEW  RNDX
 RND1:   LD      LSTK(P2)        ;START MESSING WITH THE STACK
         XPAL    P3
-        LDI     >(AESTK)
+        LDI     H(AESTK)
         XPAH    P3
         LDI     1               ;FIRST PUT 1 ON STACK
         ST      (P3)
@@ -1832,7 +1832,7 @@ E16A:   JMP     E16
 LIT1:   ILD     LSTK(P2)
         ILD     LSTK(P2)
         XPAL    P3
-        LDI     >(AESTK)
+        LDI     H(AESTK)
         XPAH    P3
         LDI     0
         ST      -1(P3)
@@ -1846,33 +1846,33 @@ LIT1:   ILD     LSTK(P2)
 ;*************************************
  
 SAVFOR: LD       FORPTR(P2)    ; CHECK FOR FOR STACK
-        XRI      <(PCSTAK)     ;  OVERFLOW
+        XRI      L(PCSTAK)     ;  OVERFLOW
         JNZ      SFOR1
         LDI      10
 E17:    JMP      E16A
-SFOR1:  XRI      <(PCSTAK)
+SFOR1:  XRI      L(PCSTAK)
         XPAL     P1            ; POINT P1 AT FOR STACK
         ST       P1L0W(P2)     ; SAVING OLD P1
-        LDI      >(FORSTK)
+        LDI      H(FORSTK)
         XPAH     P1
         ST       P1HIGH(P2)
         LD       LSTK(P2)      ; POINT P2 AT AE STACK
         XPAL     P3
-        LDI      >(AESTK)
+        LDI      H(AESTK)
         XPAH     P3
         LD       -7(P3)        ;GET  VARIABLE INDEX
         ST       @1(P1)        ;SAVE ON  FOR-STACK
-        LD       -4(P3)        ;GET  <(LIMIT)
+        LD       -4(P3)        ;GET  L(LIMIT)
         ST       @1(P1)        ;SAVE
-        LD       -3(P3)        ;GET  >(LIMIT)
+        LD       -3(P3)        ;GET  H(LIMIT)
         ST       @1(P1)        ;SAVE
-        LD       -2(P3)        ;GET  <(STEP)
+        LD       -2(P3)        ;GET  L(STEP)
         ST       @1(P1)        ;SAVE
-        LD       -1(P3)        ;GET  >(STEP)
+        LD       -1(P3)        ;GET  H(STEP)
         ST       @1(P1)        ;SAVE
-        LD       P1L0W(P2)     ;GET  <(P1)
+        LD       P1L0W(P2)     ;GET  L(P1)
         ST       @1(P1)        ;SAVE
-        LD       P1HIGH(P2)    ;GET  >(P1)
+        LD       P1HIGH(P2)    ;GET  H(P1)
         ST       @1(P1)        ;SAVE
         XPAH     P1            ;RESTORE  OLD P1
         LD       P1L0W(P2)
@@ -1889,19 +1889,19 @@ X25:    JMP      X24
 ;*************************************
  
 NEXTV:  LD       FORPTR(P2)     ;POINT P1 AT FOR  STACK,
-        XRI      <(FORSTK)      ; CHECKING FOR UNDERFLOW
+        XRI      L(FORSTK)      ; CHECKING FOR UNDERFLOW
         JNZ      QNXTV1
         LDI      11             ;REPORT ERROR
         JMP      E17
-QNXTV1: XRI      <(FORSTK)
+QNXTV1: XRI      L(FORSTK)
         XPAL     P1
         ST       P1L0W(P2)      ;SAVE OLD P1
-        LDI      >(FORSTK)
+        LDI      H(FORSTK)
         XPAH     P1
         ST       P1HIGH(P2) 
         LD       LSTK(P2)       ;POINT P3 AT AE STACK
         XPAL     P3
-        LDI      >(AESTK)
+        LDI      H(AESTK)
         XPAH     P3
         LD       @-1(P3)        ;GET  VARIABLE  INDEX
         XOR      -7(P1)         ;COMPARE  WITH  INDEX
@@ -1910,22 +1910,22 @@ QNXTV1: XRI      <(FORSTK)
 E18:    JMP      E17
 NXTV10: XOR      -7(P1)         ;RESTORE  INDEX
         XAE                     ;SAVE IN  EREG
-        LD      EREG(P2)        ;GET <(VARIABLE)
+        LD      EREG(P2)        ;GET L(VARIABLE)
         CCL          
-        ADD     -4(P1)          ;ADD <(STEP)
+        ADD     -4(P1)          ;ADD L(STEP)
         ST      EREG(P2)        ;STORE  IN VARIABLE
         ST      (P3)            ;  AND ON STACK
         LD      @1(P2)          ; INCREMENT RAM PTR
-        LD      EREG(P2)        ;GET >(VARIABLE)
-        ADD     -3(P1)          ;ADD >(STEP)
+        LD      EREG(P2)        ;GET H(VARIABLE)
+        ADD     -3(P1)          ;ADD H(STEP)
         ST      EREG(P2)        ; STORE  IN VARIABLE
         ST      1(P3)           ;  AND ON STACK
         LD      @-1(P2)         ; RESTORE RAM POINTER
-        LD      -6(P1)          ;GET <(LIMIT)
+        LD      -6(P1)          ;GET L(LIMIT)
         ST      2(P3)           ;PUT ON STACK
-        LD      -5(P1)          ;GET >(LIMIT)
+        LD      -5(P1)          ;GET H(LIMIT)
         ST      3(P3)           ;PUT ON STACK
-        LD      -3(P1)          ;GET >(STEP)
+        LD      -3(P1)          ;GET H(STEP)
         JP      NXTV2           ; IF NEGATIVE, INVERT
         LDI     4               ;  ITEMS ON A. E.  STACK
         ST      NUM(P2)         ;NUM = LOOP  COUNTER
@@ -1958,7 +1958,7 @@ NEXTV1: LD      LO(P2)        ;IS FOR-LOOP  OVER WITH?
         XPPC    P3            ; RETURN TO I.L. INTERPRETER
 X_REDO: LD      FORPTR(P2)    ; POINT P3 AT FOR STACK
         XPAL    P3                                            
-        LDI     >(FORSTK)
+        LDI     H(FORSTK)
         XPAH    P3                              
         LD      -1(P3)        ;GET OLD P1 OFF STACK
         XPAH    P1
@@ -1973,7 +1973,7 @@ E19:    JMP     E18
 ;************************************
  
 ;  THIS ROUTINE IMPLEMENTS THE STATEMENT:
-;      'PRINT' $' FACTOR
+;      'PRINT' '$' FACTOR
  
 PSTRNG: LD      HI(P2)          ;POINT P1 AT STRING TO PRINT
         XPAH    P1
@@ -1996,7 +1996,7 @@ PRSTR1: LD      @1(P1)          ;GET A CHARACTER
 ;************************************
  
 ;  THIS ROUTINE IMPLEMENTS THE STATEMENT:
-;       'INPUT' $' FACTOR
+;       'INPUT' '$' FACTOR
  
 ISTRNG: LD      HI(P2)          ;GET ADDRESS TO STORE THE
         XPAH    P3              ;  STRING,  PUT IT INTO P3
@@ -2014,16 +2014,16 @@ X27:    JMP     X26
 ;************************************
  
 ;  THIS ROUTINE IMPLEMENTS THE STATEMENT:
-;       '$  FACTOR  '= STRING
+;       '$'  FACTOR  '=' STRING
          
 PUTSTR: LD      LO(P2)          ;GET ADDRESS TO STORE STRING,
         XPAL    P3              ;  PUT IT INTO P3
         LD      HI(P2)
         XPAH    P3
 LOOP11: LD      @1(P1)         ;GET A BYTE FROM STRING
-        XRI     '"            ;CHECK FOR END OF STRING
+        XRI     '"'            ;CHECK FOR END OF STRING
         JZ      STREND
-        XRI     '" | 0x0D     ;MAKE SURE THERE'S NO CR
+        XRI     '"' | 0x0D     ;MAKE SURE THERE'S NO CR
         JNZ     PTSTR1
         LDI     7
         JMP     E19            ;ERROR IF CARRIAGE RETURN
@@ -2040,11 +2040,11 @@ STREND: LDI     0x0D           ;APPEND CARRIAGE RETURN
 ;************************************
  
 ;  THIS  ROUTINE  IMPLEMENTS  THE  STATEMENT:
-;       '$ FACTOR  '=  '$ FACTOR
+;       '$' FACTOR  '='  '$' FACTOR
  
 MOVSTR: LD      LSTK(P2)        ; POINT P3 AT A. E.  STACK
         XPAL    P3
-        LDI     >(AESTK)
+        LDI     H(AESTK)
         XPAH    P3
         LD      @-1(P3)         ;GET ADDRESS OF SOURCE STRING
         XPAH    P1              ;  INTO P1
@@ -2074,7 +2074,7 @@ LOOP12: LD      @1(P1)           ;GET A SOURCE CHARACTER
 PUTPGE:  ILD     LSTK(P2)
          ILD     LSTK(P2)
          XPAL    P3
-         LDI     >(AESTK)
+         LDI     H(AESTK)
          XPAH    P3
          LD      PAGE(P2)
          ST      -2(P3)
@@ -2105,9 +2105,9 @@ NUPGE0:  ST      PAGE(P2)
 FNDPGE:  LD      PAGE(P2)
          XRI     1               ;SPECIAL CASE IS PAGE 1, BUT
          JNZ     FPGE1           ;OTHERS ARE CONVENTIONAL
-         LDI     >(PGM)          ;PAGE 1 STARTS AT 'PGM'
+         LDI     H(PGM)          ;PAGE 1 STARTS AT 'PGM'
          ST      TEMP2(P2)
-         LDI     <(PGM)
+         LDI     L(PGM)
          ST      TEMP3(P2)
          XPPC    P3              ;RETURN
 FPGE1:   XRI     1               ;RESTORE PAGE  #
@@ -2229,51 +2229,55 @@ CALBITH =        CALBIT*256
 JMPBITH =        JMPBIT*256
  
 
-        .macro   TSTR    FAIL,A,B 
-                .db      >((FAIL & 0x0FFF)| TSTBITH)
-                .db      <((FAIL & 0x0FFF)| TSTBITH)
-        .if     B
-                .db     A | 0x80 
-        .else
-                .db     A 
-                .db     B | 0x80
-        .endif
-        .endm
+TSTR     MACRO   FAIL,A,B 
+         DB      H((FAIL & 0x0FFF)| TSTBITH)
+         DB      L((FAIL & 0x0FFF)| TSTBITH)
+         IFB     B
+           DB    A |0x80 
+         ELSE
+           DB    A 
+           DB    B |0x80
+         ENDIF
+         ENDM
  
-        .macro   TSTCR  FAIL
-		.db      >(FAIL & 0x0FFF | TSTBITH)
-		.db      <(FAIL & 0x0FFF | TSTBITH)
-		.db      0x0D|0x80
-	.endm
+TSTCR    MACRO   FAIL
+         DB      H(FAIL & 0x0FFF | TSTBITH)
+         DB      L(FAIL & 0x0FFF | TSTBITH)
+         DB      0x0D|0x80
+         ENDM
  
-	.macro	TSTV	FAIL
-		.db      >((TSTVAR-1) & 0x0FFF)
-		.db      <((TSTVAR-1) & 0x0FFF)
-		.db      >(FAIL)
-		.db      <(FAIL)
-	.endm
+TSTV     MACRO   FAIL
+         DB      H((TSTVAR-1) & 0x0FFF)
+         DB      L((TSTVAR-1) & 0x0FFF)
+         DB      H(FAIL)
+         DB      L(FAIL)
+         ENDM
  
-	.macro	TSTN	FAIL
-		.db      >((TSTNUM-1) & 0x0FFF)
-		.db      <((TSTNUM-1) & 0x0FFF)
-		.db      >(FAIL)
-		.db      <(FAIL)
-	.endm
+TSTN     MACRO   FAIL
+         DB      H((TSTNUM-1) & 0x0FFF)
+         DB      L((TSTNUM-1) & 0x0FFF)
+         DB      H(FAIL)
+         DB      L(FAIL)
+         ENDM
  
-	.macro	JUMP	ADR
-		.db      >(ADR & 0x0FFF  | JMPBITH)
-		.db      <(ADR & 0x0FFF  | JMPBITH)
-	.endm
+JUMP     MACRO   ADR
+         DB      H(ADR & 0x0FFF  | JMPBITH)
+         DB      L(ADR & 0x0FFF  | JMPBITH)
+         ENDM
  
-	.macro	CALL	ADR
-		.db      >(ADR & 0x0FFF  | CALBITH)
-		.db      <(ADR & 0x0FFF  | CALBITH)
-	.endm
+CALL     MACRO   ADR
+         DB      H(ADR & 0x0FFF  | CALBITH)
+         DB      L(ADR & 0x0FFF  | CALBITH)
+         ENDM
 
-	.macro	DO	ADR
-		.db      >((ADR-1) & 0x0FFF)
-		.db      <((ADR-1) & 0x0FFF)
-	.endm 
+DO       MACRO   ADR
+         IFNB    ADR 
+         DB      H((ADR-1) & 0x0FFF)
+         DB      L((ADR-1) & 0x0FFF)
+         SHIFT
+         DO      ALLARGS
+         ENDIF
+         ENDM 
 
          
  
@@ -2286,220 +2290,149 @@ PROMPT: DO       GETL
         TSTCR    PRMPT1
         JUMP     PROMPT
 PRMPT1: TSTN     LIST
-        DO	FNDPGE
-	DO	XCHGP1
-	DO	POPAE
-	DO	FNDLBL
-	DO	INSRT
+        DO       FNDPGE,XCHGP1,POPAE,FNDLBL,INSRT
         JUMP     PROMPT
  
-LIST:   TSTR     RUN,"LIS",'T
+LIST:   TSTR     RUN,"LIS",'T'
         DO       FNDPGE
         TSTN     LIST1
-        DO	POPAE
-	DO	FNDLBL
+        DO       POPAE,FNDLBL
         JUMP     LIST2
 LIST1:  DO       CHPAGE
 LIST2:  DO       LST
 LIST3:  CALL     PRNUM
         DO       LST3
         JUMP     START
-RUN:    TSTR     CLR,"RU",'N
+RUN:    TSTR     CLR,"RU",'N'
         DO       DONE
-BEGIN:  DO	FNDPGE
-	DO	CHPAGE
-	DO	STRT
-	DO	NXT
-CLR:    TSTR     NEW,"CLEA",'R
-        DO	DONE
-	DO	CLEAR
-	DO	NXT
-NEW:    TSTR     STMT,"NE",'W
+BEGIN:  DO       FNDPGE,CHPAGE,STRT,NXT
+CLR:    TSTR     NEW,"CLEA",'R'
+        DO       DONE,CLEAR,NXT
+NEW:    TSTR     STMT,"NE",'W'
         TSTN     DFAULT
         JUMP     NEW1
 DFAULT: DO       LIT1
-NEW1:   DO	DONE
-	DO	POPAE
-	DO	NUPAGE
-	DO	FNDPGE
-	DO	NEWPGM
-	DO	NXT
-STMT:   TSTR     LET,"LE",'T
+NEW1:   DO       DONE,POPAE,NUPAGE,FNDPGE,NEWPGM,NXT
+STMT:   TSTR     LET,"LE",'T'
 LET:    TSTV     AT
-        TSTR     SYNTAX,'=
+        TSTR     SYNTAX,'='
         CALL     RELEXP
-        DO	STORE
-	DO	DONE
-	DO	NXT
-AT:     TSTR     IF, '@
+        DO       STORE,DONE,NXT
+AT:     TSTR     IF, '@'
         CALL     FACTOR
-        TSTR     SYNTAX,'=
+        TSTR     SYNTAX,'='
         CALL     RELEXP
-        DO	MOVE
-	DO	DONE
-	DO	NXT
+        DO       MOVE,DONE,NXT
  
-IF:     TSTR     UNT,"I",'F
+IF:     TSTR     UNT,"I",'F'
         CALL     RELEXP
-        TSTR     IF1,"THE",'N
-IF1:    DO	POPAE
-	DO	CMPR
+        TSTR     IF1,"THE",'N'
+IF1:    DO       POPAE,CMPR
         JUMP     STMT
                       
-UNT:    TSTR    DOSTMT,"UNTI",'L
+UNT:    TSTR    DOSTMT,"UNTI",'L'
         DO      CKMODE
         CALL    RELEXP
-        DO	DONE
-	DO	POPAE
-	DO	UNTIL
-	DO	DETPGE
-	DO	NXT
+        DO      DONE,POPAE,UNTIL,DETPGE,NXT
  
-DOSTMT: TSTR    GOTO,"D",'O
-        DO	CKMODE
-	DO	DONE
-	DO	SAVEDO
-	DO	NXT
-GOTO:   TSTR    RETURN,"G",'O
-        TSTR    GOSUB,"T",'O
+DOSTMT: TSTR    GOTO,"D",'O'
+        DO      CKMODE,DONE,SAVEDO,NXT
+GOTO:   TSTR    RETURN,"G",'O'
+        TSTR    GOSUB,"T",'O'
         CALL    RELEXP
         DO      DONE
         JUMP    TBL001
-GOSUB:  TSTR    SYNTAX,"SU",'B
+GOSUB:  TSTR    SYNTAX,"SU",'B'
         CALL    RELEXP
-        DO	DONE
-	DO	SAV
-TBL001: DO	FNDPGE
-	DO	POPAE
-	DO	FNDLBL
-	DO	XFER
-	DO	NXT
+        DO      DONE,SAV
+TBL001: DO      FNDPGE, POPAE,FNDLBL,XFER,NXT
  
-RETURN: TSTR    NEXT,"RETUR",'N
-        DO	DONE
-	DO	RSTR
-	DO	DETPGE
-	DO	NXT
-NEXT:   TSTR    FOR,"NEX",'T
+RETURN: TSTR    NEXT,"RETUR",'N'
+        DO      DONE,RSTR,DETPGE,NXT
+NEXT:   TSTR    FOR,"NEX",'T'
         DO      CKMODE
         TSTV    SYNTAX
-        DO	DONE
-	DO	NEXTV
+        DO      DONE,NEXTV
         CALL    GTROP
-        DO	POPAE
-	DO	NEXTV1
-	DO	DETPGE
-	DO	NXT
+        DO      POPAE, NEXTV1,DETPGE,NXT
  
-FOR:    TSTR    STAT,"FO",'R
+FOR:    TSTR    STAT,"FO",'R'
         DO      CKMODE
         TSTV    SYNTAX
-        TSTR    SYNTAX,'=
+        TSTR    SYNTAX,'='
         CALL    RELEXP
-        TSTR    SYNTAX,"T",'O
+        TSTR    SYNTAX,"T",'O'
         CALL    RELEXP
-        TSTR    FORI,"STE",'P
+        TSTR    FORI,"STE",'P'
         CALL    RELEXP
         JUMP    FOR2
 FORI:   DO      LIT1
-FOR2:   DO	DONE
-	DO	SAVFOR
-	DO	STORE
-	DO	NXT
+FOR2:   DO      DONE,SAVFOR,STORE,NXT
  
-STAT:   TSTR    PGE,"STA",'T
-        TSTR    SYNTAX,'=
+STAT:   TSTR    PGE,"STA",'T'
+        TSTR    SYNTAX,'='
         CALL    RELEXP
-        DO	POPAE
-	DO	MOVESR
-        DO	DONE
-	DO	NXT
+        DO      POPAE,MOVESR
+        DO      DONE,NXT
  
-PGE:    TSTR    DOLLAR,"PAG",'E
-        TSTR    SYNTAX,'=
+PGE:    TSTR    DOLLAR,"PAG",'E'
+        TSTR    SYNTAX,'='
         CALL    RELEXP
-        DO	DONE
-	DO	POPAE
-	DO	NUPAGE
-	DO	FNDPGE
-	DO	CHPAGE
-	DO	NXT
+        DO      DONE,POPAE,NUPAGE,FNDPGE,CHPAGE,NXT
  
-DOLLAR: TSTR    PRINT,'$
+DOLLAR: TSTR    PRINT,'$'
         CALL    FACTOR
-        TSTR    SYNTAX,'=
-        TSTR    DOLR1, '"
-        DO	POPAE
-	DO	PUTSTR
+        TSTR    SYNTAX,'='
+        TSTR    DOLR1, '"'
+        DO      POPAE,PUTSTR
         JUMP    DOLR2
-DOLR1:  TSTR    SYNTAX,'$
+DOLR1:  TSTR    SYNTAX,'$'
         CALL    FACTOR
-        DO	XCHGP1
-	DO	MOVSTR
-	DO	XCHGP1
-DOLR2:  DO	DONE
-	DO	NXT
+        DO      XCHGP1,MOVSTR,XCHGP1
+DOLR2:  DO      DONE,NXT
  
-PRINT:  TSTR    INPUT,"P",'R
-        TSTR    PR1,"IN",'T
-PR1:    TSTR    PR2,'"
+PRINT:  TSTR    INPUT,"P",'R'
+        TSTR    PR1,"IN",'T'
+PR1:    TSTR    PR2,'"'
         DO      PRS
         JUMP    COMMA
-PR2:    TSTR    PR3,'$
+PR2:    TSTR    PR3,'$'
         CALL    FACTOR
-        DO	XCHGP1
-	DO	POPAE
-	DO	PSTRNG
-	DO	XCHGP1
+        DO      XCHGP1,POPAE,PSTRNG,XCHGP1
         JUMP    COMMA
 PR3:    CALL    RELEXP
         CALL    PRNUM
-COMMA:  TSTR    PR4,',
+COMMA:  TSTR    PR4,','
         JUMP    PR1
-PR4:    TSTR    PR5,';
+PR4:    TSTR    PR5,';'
         JUMP    PR6
 PR5:    DO      NLINE
-PR6:    DO	DONE
-	DO	 NXT
-INPUT:  TSTR    END,"INPU",'T
+PR6:    DO      DONE, NXT
+INPUT:  TSTR    END,"INPU",'T'
         DO      CKMODE
         TSTV    IN2
-        DO	XCHGP1
-	DO	GETL
+        DO      XCHGP1,GETL
 IN1:    CALL    RELEXP
-        DO	STORE
-	DO	XCHGP1
-        TSTR    IN3,',
+        DO      STORE,XCHGP1
+        TSTR    IN3,','
         TSTV    SYNTAX
         DO      XCHGP1
-        TSTR    SYNTAX,',
+        TSTR    SYNTAX,','
         JUMP    IN1
-IN2:    TSTR    SYNTAX,'$
+IN2:    TSTR    SYNTAX,'$'
         CALL    FACTOR
-        DO	XCHGP1
-	DO	GETL
-	DO	POPAE
-	DO	ISTRNG
-	DO	XCHGP1
-IN3:    DO	DONE
-	DO	NXT
+        DO      XCHGP1,GETL,POPAE,ISTRNG,XCHGP1
+IN3:    DO      DONE,NXT
  
-END:    TSTR    ML,"EN",'D
-        DO	DONE
-	DO	BREAK
+END:    TSTR    ML,"EN",'D'
+        DO      DONE,BREAK
  
-ML:     TSTR    REM,"LIN",'K
+ML:     TSTR    REM,"LIN",'K'
         CALL    RELEXP
-        DO	DONE
-	DO	XCHGP1
-	DO	POPAE
-	DO	CALLML
-	DO	XCHGP1
-	DO	NXT           
+        DO      DONE,XCHGP1,POPAE,CALLML,XCHGP1,NXT           
                                                               
-REM:    TSTR    SYNTAX,"RE",'M
-        DO	IGNORE
-	DO	NXT
+REM:    TSTR    SYNTAX,"RE",'M'
+        DO      IGNORE,NXT
  
 SYNTAX: DO       ERR
 ERRNUM: CALL     PRNUM
@@ -2509,143 +2442,123 @@ ERRNUM: CALL     PRNUM
 ; AUTOMATIC 'RTN' (THIS SAVES VALUABLE BYTES AND TIME)
  
 RELEXP: CALL     EXPR
-        TSTR     REL1,'=
+        TSTR     REL1,'='
         CALL     EXPR
         DO       EQ
-REL1:   TSTR     REL4,'<
-        TSTR     REL2,'=
+REL1:   TSTR     REL4,'<'
+        TSTR     REL2,'='
         CALL     EXPR
         DO       LEQ
-REL2:   TSTR     REL3,'>
+REL2:   TSTR     REL3,'>'
         CALL     EXPR
         DO       NEQ
 REL3:   CALL     EXPR
         DO       LSS
-REL4:   TSTR     RETEXP,'>
-        TSTR     REL5,'=
+REL4:   TSTR     RETEXP,'>'
+        TSTR     REL5,'='
         CALL     EXPR
         DO       GEQ
 REL5:   CALL     EXPR
 GTROP:  DO       GTR
  
-EXPR:   TSTR     EX1,'-
+EXPR:   TSTR     EX1,'-'
         CALL     TERM
         DO       NEG
         JUMP     EX3
-EX1:    TSTR     EX2,'+
+EX1:    TSTR     EX2,'+'
 EX2:    CALL     TERM
-EX3:    TSTR     EX4,'+
+EX3:    TSTR     EX4,'+'
         CALL     TERM
         DO       ADD
         JUMP     EX3
-EX4:    TSTR     EX5,'-
+EX4:    TSTR     EX5,'-'
         CALL     TERM
         DO       SUB
         JUMP     EX3
-EX5:    TSTR     RETEXP,"O",'R
+EX5:    TSTR     RETEXP,"O",'R'
         CALL     TERM
         DO       OROP
         JUMP     EX3
 RETEXP: DO       RTN
  
 TERM:   CALL    FACTOR
-Tl:     TSTR    T2,'*
+Tl:     TSTR    T2,'*'
         CALL    FACTOR
         DO      MUL
         JUMP    Tl
-T2:     TSTR    T3,'/
+T2:     TSTR    T3,'/'
         CALL    FACTOR
         DO      DIV  
         JUMP    Tl
-T3:     TSTR    RETEXP,"AN",'D
+T3:     TSTR    RETEXP,"AN",'D'
         CALL    FACTOR
         DO      ANDOP
         JUMP    Tl
  
 FACTOR: TSTV     Fl
-        DO	IND
-	DO	RTN
+        DO       IND,RTN
 Fl:     TSTN     F2
         DO       RTN
-F2:     TSTR     F3,'#
-        DO	HEX
-	DO	RTN
-F3:     TSTR     F4,'(
+F2:     TSTR     F3,'#'
+        DO       HEX,RTN
+F3:     TSTR     F4,'('
         CALL     RELEXP
-        TSTR     SYNTAX,')
+        TSTR     SYNTAX,')'
         DO       RTN
-F4:     TSTR     F5,'@
+F4:     TSTR     F5,'@'
         CALL     FACTOR
-        DO	EVAL
-	DO	RTN
-F5:     TSTR     F6,"NO",'T
+        DO       EVAL,RTN
+F5:     TSTR     F6,"NO",'T'
         CALL     FACTOR
-        DO	NOTOP
-	DO	RTN
-F6:     TSTR     F7,"STA",'T
-        DO	STATUS
-	DO	RTN
-F7:     TSTR     F8,"TO",'P
-        DO	FNDPGE
-	DO	TOP
-	DO	RTN
-F8:     TSTR     F9,"MO",'D
+        DO       NOTOP,RTN
+F6:     TSTR     F7,"STA",'T'
+        DO       STATUS,RTN
+F7:     TSTR     F8,"TO",'P'
+        DO       FNDPGE,TOP,RTN
+F8:     TSTR     F9,"MO",'D'
         CALL     DOUBLE
-        DO	DIV
-	DO	MODULO
-	DO	RTN
-F9:     TSTR     F10,"RN",'D
+        DO       DIV,MODULO,RTN
+F9:     TSTR     F10,"RN",'D'
         CALL     DOUBLE
-        DO	RANDOM
-	DO	SUB
-	DO	ADD
-	DO	DIV
-	DO	MODULO
-	DO	ADD
-	DO	RTN
-F10:    TSTR     SYNTAX,"PAG",'E
-        DO	PUTPGE
-	DO	RTN
+        DO       RANDOM,SUB,ADD,DIV,MODULO,ADD,RTN
+F10:    TSTR     SYNTAX,"PAG",'E'
+        DO       PUTPGE,RTN
  
-DOUBLE: TSTR     SYNTAX,'(
+DOUBLE: TSTR     SYNTAX,'('
         CALL     RELEXP
-        TSTR     SYNTAX,',
+        TSTR     SYNTAX,','
         CALL     RELEXP
-        TSTR     SYNTAX,')
+        TSTR     SYNTAX,')'
         DO       RTN
  
-PRNUM:  DO	XCHGP1
-	DO	PRN
-PRNUM1: DO	DIV
-	DO	PRN1
-	DO	XCHGP1
-	DO	RTN
+PRNUM:  DO       XCHGP1,PRN
+PRNUM1: DO       DIV,PRN1,XCHGP1,RTN
 
  
 ;*************************************
 ;*           ERROR MESSAGES          *
 ;*************************************
  
-	/macro	MESSAGE	A,B
-		.db  A
-		.db  B |0x80
-	.endm
+MESSAGE  MACRO A,B
+          DB  A
+          DB  B |0x80
+         ENDM
  
-MESGS:  MESSAGE " ERRO",'R   ;  1
-        MESSAGE "ARE",'A     ;  2
-        MESSAGE "STM",'T     ;  3
-        MESSAGE "CHA",'R     ;  4
-        MESSAGE "SNT",'X     ;  5
-        MESSAGE "VAL",'U     ;  6
-        MESSAGE "END",'"     ;  7
-        MESSAGE "NOG",'O     ;  8
-        MESSAGE "RTR",'N     ;  9
-        MESSAGE "NES",'T     ;  10
-        MESSAGE "NEX",'T     ;  11
-        MESSAGE "FO" ,'R     ;  12
-        MESSAGE "DIV",'0     ;  13
-        MESSAGE "BR" ,'K     ;  14
-        MESSAGE "UNT",'L     ;  15
+MESGS:  MESSAGE " ERRO",'R'   ;  1
+        MESSAGE "ARE",'A'     ;  2
+        MESSAGE "STM",'T'     ;  3
+        MESSAGE "CHA",'R'     ;  4
+        MESSAGE "SNT",'X'     ;  5
+        MESSAGE "VAL",'U'     ;  6
+        MESSAGE "END",'"'     ;  7
+        MESSAGE "NOG",'O'     ;  8
+        MESSAGE "RTR",'N'     ;  9
+        MESSAGE "NES",'T'     ;  10
+        MESSAGE "NEX",'T'     ;  11
+        MESSAGE "FO" ,'R'     ;  12
+        MESSAGE "DIV",'0'     ;  13
+        MESSAGE "BR" ,'K'     ;  14
+        MESSAGE "UNT",'L'     ;  15
         ;
  
 ;*************************************

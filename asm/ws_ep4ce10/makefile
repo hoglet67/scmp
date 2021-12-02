@@ -1,8 +1,12 @@
+AS=~/build/asl-current/asl.exe
+ASFLAGS=-L
+
+P2BIN=~/build/asl-current/p2bin.exe
 
 FPGA_DIR=../../boards/ws_ep4ce10
 SIM_DIR=$(FPGA_DIR)/simulation
 
-TARGETS=test nibl.asxx
+TARGETS=test nibl
 HEX=$(addsuffix .hex,$(TARGETS))
 SIMS=$(addprefix $(SIM_DIR)/,$(HEX))
 FPGAS=$(addprefix $(FPGA_DIR)/,$(HEX))
@@ -16,21 +20,17 @@ clean:
 	-rm $(addsuffix .ihx,$(TARGETS)) 2>/dev/nul ||:
 	-rm $(addsuffix .lst,$(TARGETS)) 2>/dev/nul ||:
 	-rm $(addsuffix .bin,$(TARGETS)) 2>/dev/nul ||:
-	-rm $(addsuffix .rel,$(TARGETS)) 2>/dev/nul ||:
-	-rm $(addsuffix .vhx,$(TARGETS)) 2>/dev/nul ||:
+	-rm $(addsuffix .cod,$(TARGETS)) 2>/dev/nul ||:
 
-%.bin:	%.ihx
-	hex2bin 0x0000 $< $@
+%.ihx:	%.bin
+	bin2hex 0 $< $@
 
-%.ihx:	%.rel
-	aslink -i -m -o $@ $< -e
+%.bin:	%.cod
+	$(P2BIN) $< $@
 
-%.rel:	%.asm
-	asscmp -o -l $@ $<
+%.cod:	%.asm
+	$(AS) $(ASFLAGS) -o $@ $<
 
-%.vhx: %.bin
-	/usr/bin/hexdump -v -e '/1 "%02X" " "' $< >$@
-	
 $(FPGA_DIR)/%.hex: %.ihx
 	cp $< $@
 	
