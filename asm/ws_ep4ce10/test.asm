@@ -9,8 +9,18 @@ H FUNCTION VAL16, ((VAL16 >> 8) & 0xFF)
 
 blank:		db	0		
 
+		ldi	0x23		; 23
+		adi	0xF1		; 14 Cy
+		adi	0x22		; 37
+		add	c1		; FB
+		xae			; 0?
+		lde			; FB
+		ade			;  
+		ade	
+		ade	
+
 		; test rotate
-		ldi	0xF0
+c1:		ldi	0xF0
 		sr			; should be 78
 		ccl
 		srl			; should be 3C

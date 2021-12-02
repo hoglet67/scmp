@@ -22,10 +22,18 @@ output	logic			op_dly
 			op_pc <= UCLBL_ST;
 		else if (op[7:3] == 5'b11101)
 			op_pc <= UCLBL_DAD;	//2 byte decimal add
+		else if (op[7:3] == 5'b11110)
+			op_pc <= UCLBL_ADD;	//2 byte decimal add
+		else if (op[7:3] == 5'b11111)
+			op_pc <= UCLBL_CAD;	//2 byte decimal add
 		else if (op[7:6] == 2'b11)
 			op_pc <= UCLBL_LD;	//2 byte load/logical instructions
 		else if (op[7:0] == 8'b01101000)
 			op_pc <= UCLBL_DAE;	//1 byte decimal add (EXT)
+		else if (op[7:0] == 8'b01110000)
+			op_pc <= UCLBL_ADE;	//1 byte decimal add (EXT)
+		else if (op[7:0] == 8'b01111000)
+			op_pc <= UCLBL_CAE;	//1 byte decimal add (EXT)
 		else if (op[7:6] == 2'b01 && op[2:0] == 3'b000)
 			op_pc <= UCLBL_LDE;	//1 byte load/logical instructions with EXT
 		else if (op[7:2] == 6'b101010)

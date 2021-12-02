@@ -302,6 +302,7 @@ output	logic		WR_n
 	mux_oh mux_read_bus_lo (
 			.sel_oh(read_bus_lo_src_oh),
 			.D('{	
+				8'hFF,
 				8'hA0,
 				8'hFA,
 				8'h66,
