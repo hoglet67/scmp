@@ -16,9 +16,9 @@ microcode step.
 
 	SECTION:<NAME>,<TYPE>,<WIDTH>
 
-Within definitions a SECTION will define a microcode attribute which can be
-included in each microcode step. Each microcode line will comprise a set of 
-these sections
+Within definitions a SECTION will define a microcode attribute bit-field which 
+can be included in each microcode step. Each microcode line will comprise a set 
+of these sections
 
 TYPE can be one of
 
