@@ -65,8 +65,8 @@ output	MCODE_t		mcode
 	always_ff @(posedge clk, negedge rst_n) begin
 		if (!rst_n) 
 		begin
-			mc_pc <= 8'd0;
-			mc_ret <= 8'd0;
+			mc_pc <= 'd0;
+			mc_ret <= 'd0;
 		end
 		else
 		begin			
@@ -82,7 +82,7 @@ output	MCODE_t		mcode
 				mc_pc <= mc_pc + i_mcode.nextpc;
 
 			if (i_mcode.ctl[CTL_IX_CALL])
-				mc_ret <= mc_pc + 8'd1;
+				mc_ret <= mc_pc + 'd1;
 		end
 	end
 
@@ -102,7 +102,7 @@ output	MCODE_t		mcode
 	assign { bus_ADS_n, bus_RD_n, bus_WR_n } = ~i_mcode.bus[2:0];
 	
 	assign ld_l = i_mcode.ld_l & {$bits(ld_l){cond | ~i_mcode.ctl[CTL_IX_COND_LD]}};
-	assign ld_h = i_mcode.ld_h & {$bits(ld_l){cond | ~i_mcode.ctl[CTL_IX_COND_LD]}};
+	assign ld_h = i_mcode.ld_h & {$bits(ld_h){cond | ~i_mcode.ctl[CTL_IX_COND_LD]}};
 	assign rd_l = i_mcode.rd_l;
 	assign rd_h = i_mcode.rd_h;
 	assign wr_l = i_mcode.wr_l;
