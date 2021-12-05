@@ -86,7 +86,18 @@ create_generated_clock -name {clk_disp} -source [get_pins {pll|altpll_component|
 # Set False Path
 #**************************************************************
 
+#ignore timing from the ram/rom to D 
+set_false_path -from [get_registers {mem_ram*}] -to [get_clocks {cpu_clk}]
+set_false_path -from [get_registers {mem_rom_sim*}] -to [get_clocks {cpu_clk}]
 
+#ignore timing writing to ram
+set_false_path -from [get_clocks {cpu_clk}] -to [get_registers {mem_ram*}]
+
+
+#ignore address timing for rom/ram
+set_false_path -from [get_registers {cpu_addr_latched*}] -to [get_clocks {clk_50m}]
+set_false_path -from [get_registers {scmp:cpu|reg8:reg_addr_l*}] -to [get_clocks {clk_50m}]
+set_false_path -from [get_registers {scmp:cpu|reg8:reg_addr_h*}] -to [get_clocks {clk_50m}]
 
 #**************************************************************
 # Set Multicycle Path

@@ -79,7 +79,7 @@ output			ser_tx
 	);
 
 
-	always_ff@(posedge clk_50m)
+	always_ff@(posedge cpu_clk)
 	begin
 		if (!cpu_ADS_n) 
 			cpu_addr_latched <= cpu_D_o[3:0];
