@@ -79,7 +79,7 @@ output			ser_tx
 	);
 
 
-	always_ff@(posedge cpu_clk)
+	always_ff@(posedge ram_clk)
 	begin
 		if (!cpu_ADS_n) 
 			cpu_addr_latched <= cpu_D_o[3:0];
@@ -89,13 +89,13 @@ output			ser_tx
 	mem_rom_sim rom(
 		.address({cpu_addr_latched[1],cpu_addr}),
 		.q(rom_D_Q),
-		.clock(clk_50m)
+		.clock(ram_clk)
 		);
 
 	mem_ram ram(
 		.address({cpu_addr_latched[1],cpu_addr}),
 		.q(ram_D_Q),
-		.clock(clk_50m),
+		.clock(ram_clk),
 		.data(cpu_D_o),
 		.wren(!cpu_WR_n & cpu_addr_latched[0])
 		);
@@ -136,38 +136,39 @@ output			ser_tx
 		.seg(disp0_seg)
 	);
 
-	generate
-		if (SIM) begin
-			//5.45m clock
-			initial begin
-				forever begin
-					#92 cpu_clk <= 1'b1;
-					#92 cpu_clk <= 1'b0;
-				end
-			end
-
-			//1m clock
-			initial begin
-				forever begin
-					#500 clk_1m <= 1'b1;
-					#500 clk_1m <= 1'b0;
-				end
-			end
-
-			//lock
-			initial begin
-				pll_lock <= 1'b0;
-				#1000;
-				pll_lock <= 1'b1;
-			end
-		end else
+//	generate
+//		if (SIM) begin
+//			//5.45m clock
+//			initial begin
+//				forever begin
+//					#92 cpu_clk <= 1'b1;
+//					#92 cpu_clk <= 1'b0;
+//				end
+//			end
+//
+//			//1m clock
+//			initial begin
+//				forever begin
+//					#500 clk_1m <= 1'b1;
+//					#500 clk_1m <= 1'b0;
+//				end
+//			end
+//
+//			//lock
+//			initial begin
+//				pll_lock <= 1'b0;
+//				#1000;
+//				pll_lock <= 1'b1;
+//			end
+//		end else
 			pll_main pll(
 				.inclk0(clk_50m),
-				.c0(cpu_clk),
+				.c0(ram_clk),
 				.c1(clk_1m),
+				.c2(cpu_clk),
 				.locked(pll_lock)
 			);
-	endgenerate
+//	endgenerate
 
 
 endmodule

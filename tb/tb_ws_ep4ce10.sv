@@ -5,7 +5,7 @@
 
 `timescale	1 ns / 1 ns
 
-`define baud 1200
+`define baud 9600
 `define halfbit (1000000000 / (`baud * 2))
 
 string TESTSTR = "Ishbel";
