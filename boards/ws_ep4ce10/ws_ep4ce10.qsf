@@ -106,7 +106,15 @@ set_location_assignment PIN_P2 -to disp0_seg[0]
 set_location_assignment PIN_N2 -to disp0_seg[7]
 #set_location_assignment	PIN_N1	-to	16I/Os_1_16
 
-
+#8I/Os_1
+#set_location_assignment	PIN_J13	-to	8I/Os_1_8	  
+#set_location_assignment	PIN_L11	-to	8I/Os_1_7
+#set_location_assignment	PIN_K12	-to	8I/Os_1_6
+#set_location_assignment	PIN_J12	-to	8I/Os_1_5
+#set_location_assignment	PIN_K11	-to	8I/Os_1_4
+#set_location_assignment	PIN_J11	-to	8I/Os_1_3
+set_location_assignment PIN_K10 -to ser_tx
+set_location_assignment PIN_F11 -to ser_rx
 
 set_global_assignment -name QIP_FILE pll_main.qip
 set_global_assignment -name QIP_FILE mem_rom_sim.qip

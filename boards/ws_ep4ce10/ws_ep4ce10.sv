@@ -8,11 +8,11 @@ module ws_ep4ce10
 (
 input			clk_50m,
 			rst_n,
-			sin,
+			ser_rx,
 output  	[3:0]	led_n,
 output		[3:0]	disp0_sel,
 output  	[7:0]	disp0_seg,
-output			sout
+output			ser_tx
 );
 
 
@@ -52,6 +52,10 @@ output			sout
 
 
 	assign	cpu_rst_n = rst_n & pll_lock;
+
+	assign	ser_tx = !cpu_f0;
+	assign  cpu_sb_i = ser_rx;
+	assign  cpu_sa_i = 1'b0;
 
 
 	scmp cpu
@@ -134,11 +138,11 @@ output			sout
 
 	generate
 		if (SIM) begin
-			//4m clock
+			//5.45m clock
 			initial begin
 				forever begin
-					#125 cpu_clk <= 1'b1;
-					#125 cpu_clk <= 1'b0;
+					#92 cpu_clk <= 1'b1;
+					#92 cpu_clk <= 1'b0;
 				end
 			end
 
