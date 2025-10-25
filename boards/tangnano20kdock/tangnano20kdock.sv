@@ -49,7 +49,10 @@ module tangnano20kdock
 
 
    initial begin
-      $readmemh("8060nibl.mi", int_rom);
+      $readmemh("8060nibl_2400baud_putcfixed_hacked.mi", int_rom);
+      // $readmemh("8060nibl_2400baud_putcfixed.mi", int_rom);
+      // $readmemh("8060nibl_2400baud.mi", int_rom);
+      // $readmemh("8060nibl.mi", int_rom);
       // $readmemh("8073nibl.mi", int_rom);
    end
 
@@ -107,8 +110,8 @@ module tangnano20kdock
       .f0(cpu_f0),
       .f1(cpu_f1),
       .f2(cpu_f2),
-      .sin(sin),
-      .sout(sout),
+      .sin(1'b0),
+      .sout(),
 
       .ADS_n(cpu_ADS_n),
       .RD_n(cpu_RD_n),
@@ -135,23 +138,20 @@ module tangnano20kdock
    end
 
    //debug interface
-   assign led_n    = ~ { flag_h, flag_d, flag_i, flag_r, ser_rx, ser_tx };
-
-   // clk0: 43.6363636363
-   // clk2: 21.8181818181
+   assign led_n    = ~ { flag_h, flag_d, flag_i, flag_r, ~ser_rx, ~ser_tx };
 
    rPLL
      #( // For GW1NR-9C C6/I5 (Tang Nano 9K proto dev board)
         .FCLKIN("27"),
-        .IDIV_SEL(7), // -> PFD = 3.375 MHz (range: 3-400 MHz)
-        .FBDIV_SEL(12), // -> CLKOUT = 43.875 MHz (range: 3.125-600 MHz)
-        .DYN_SDIV_SEL(2),
-        .ODIV_SEL(16) // -> VCO = 702 MHz (range: 400-1200 MHz)
+        .IDIV_SEL(8), // -> PFD = 3 MHz (range: 3-400 MHz)
+        .FBDIV_SEL(7), // -> CLKOUT = 24 MHz (range: 3.125-600 MHz)
+        .DYN_SDIV_SEL(6),
+        .ODIV_SEL(32) // -> VCO = 768 MHz (range: 600-1200 MHz)
         )
    pll
      (
+      .CLKOUT(),
       .CLKOUTP(),
-      .CLKOUTD3(),
       .RESET(1'b0),
       .RESET_P(1'b0),
       .CLKFB(1'b0),
@@ -162,8 +162,8 @@ module tangnano20kdock
       .DUTYDA(4'b0),
       .FDLY(4'b0),
       .CLKIN(sys_clk), // 27 MHz
-      .CLKOUT(ram_clk), // 43.875 MHz
-      .CLKOUTD(cpu_clk), // 21.9375 MHz
+      .CLKOUTD3(ram_clk), // 8 MHz
+      .CLKOUTD(cpu_clk),  // 4 MHz
       .LOCK(pll_lock)
       );
 
@@ -183,33 +183,5 @@ module tangnano20kdock
    //    .CLKOUT(cpu_clk),
    //    .CALIB(1'b1)
    //    );
-
-   // rPLL
-   //   #( // For GW1NR-9C C6/I5 (Tang Nano 9K proto dev board)
-   //      .FCLKIN("27"),
-   //      .IDIV_SEL(6), // -> PFD = 3.857142857142857 MHz (range: 3-400 MHz)
-   //      .FBDIV_SEL(1), // -> CLKOUT = 7.714285714285714 MHz (range: 3.125-600 MHz)
-   //      .DYN_SDIV_SEL(2),
-   //      .ODIV_SEL(128) // -> VCO = 493.7142857142857 MHz (range: 400-1200 MHz)
-   //      )
-   // pll
-   //   (
-   //    .CLKOUTP(),
-   //    .CLKOUTD3(),
-   //    .RESET(1'b0),
-   //    .RESET_P(1'b0),
-   //    .CLKFB(1'b0),
-   //    .FBDSEL(6'b0),
-   //    .IDSEL(6'b0),
-   //    .ODSEL(6'b0),
-   //    .PSDA(4'b0),
-   //    .DUTYDA(4'b0),
-   //    .FDLY(4'b0),
-   //    .CLKIN(sys_clk), // 27 MHz
-   //    .CLKOUT(ram_clk), // 7.714285714285714 MHz
-   //    .CLKOUTD(cpu_clk), // 3.857142857142857 MHz
-   //    .LOCK(pll_lock)
-   //    );
-
 
 endmodule
