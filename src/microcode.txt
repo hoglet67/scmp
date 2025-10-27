@@ -26,9 +26,9 @@
 #
 
 
-# NEXTPC is usally a relative step to the next line. the microcode can jump 
+# NEXTPC is usally a relative step to the next line. the microcode can jump
 # to other lines by setting this section attribute to a value other than 1
-# a value of 'd0 is special and will alway force a jump to the first line of 
+# a value of 'd0 is special and will alway force a jump to the first line of
 # micrcode
 # NOTE: if a line of microcode is "skipped" due to a condition match then
 # the NEXTPC value is ignored and the next microcode line is executed next.
@@ -40,11 +40,11 @@ SECTION:NEXTPC,SIGNED,8
 
 
 #MAKE SURE THE TWO FOLLOWING SECTIONS MATCH!
-#SECTIONS COND_MASK and COND_XOR are applied to a set of bits 
+#SECTIONS COND_MASK and COND_XOR are applied to a set of bits
 #
 #	assign cond_in = { op[7], op[2:0], c_jmp };
 #
-#	assign	c_jmp = 
+#	assign	c_jmp =
 #		(op[3:2] == 2'b01)?~neg:		//jp i.e. !neg
 #		(op[3:2] == 2'b10)?zer:		//jz
 #		(op[3:2] == 2'b11)?~zer:
@@ -59,7 +59,7 @@ SECTION:NEXTPC,SIGNED,8
 SECTION:COND_MASK,BITMAP,10
 	NUL=NUL*
 	OP2=		'b1000000000
-	ADI=		'b0111000000			# ADI tests for immediate operations on bits 2:0 of the opcode	
+	ADI=		'b0111000000			# ADI tests for immediate operations on bits 2:0 of the opcode
 	JMP=		'b0000100000
 	POSTINC=	'b0000010000
 	RDL80=		'b0000001000
@@ -114,7 +114,7 @@ SECTION:LD_L,BITMAP,15
 	D_ACC=D|ACC
 	ACC_STAT_CYOV=ACC|ST_CY|ST_OV
 	ACC_STAT_CY=ACC|ST_CY
-	D_ACC_STAT_CY=D|ACC|ST_CY	
+	D_ACC_STAT_CY=D|ACC|ST_CY
 	EAM_ADDR=EAM|ADDR
 	EXT_SOUT=EXT|SOUT
 SECTION:LD_H,BITMAP,7
@@ -167,7 +167,7 @@ SECTION:ALU_OP,INDEX,3
 	OR=	'b011
 	XOR=	'b100
 
-	INC=	'b101	
+	INC=	'b101
 	DEC=	'b110
 
 	ADD=	'b111
@@ -200,7 +200,7 @@ FETCH:		LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=P0, RD_H=P0, WR_L=ALU, WR_H=INCR4, ALU_
 		BUS=ADSRDOP2
 		BUS=RD, LD_L=D
 DECODE:		CTL=DECODE #decode step will jump to the instruction see scmp_microcode_oppc.sv
-		
+
 
 # all loads lead to here and also all logical ops
 LD:		NEXTPC=@LDI, COND_MASK=ADI, COND_XOR=ADI, CTL=COND_JMP		# test for LDI
@@ -265,11 +265,11 @@ ILD:
 		LD_L=D_ACC, RD_L=D
 		BUS=ADSWR, WR_L=ALU, LD_L=D_ACC, RD_L=ACC, ALU_OP=INC
 		BUS=WR, NEXTPC=FETCH
-JMP:	
+JMP:
 	NEXTPC=FETCH, RD_L=ACC, COND_MASK=JMP, COND_XOR=JMP, CTL=COND_JMP
 	NEXTPC=FETCH, LD_L=ADDR_PC, LD_H=ADDR_PC, RD_L=EA, RD_H=EA, WR_L=ALU, WR_H=INCR4, ALU_OP=ADD, ALU_CY_IN=ZERO
 
-XAE:	
+XAE:
 	WR_L=RD_L, LD_L=D, RD_L=ACC
 	WR_L=RD_L, LD_L=ACC, RD_L=EXT
 	NEXTPC=FETCH, WR_L=RD_L, LD_L=EXT, RD_L=D
@@ -310,7 +310,7 @@ NOP:	NEXTPC=FETCH
 
 HALT:	BUS=ADSHALT
 	BUS=RD
-	NEXTPC=FETCH 
+	NEXTPC=FETCH
 
 SIO:	NEXTPC=FETCH, ALU_CY_IN=SIN, ALU_OP=RRL, RD_L=EXT, WR_L=ALU, LD_L=EXT_SOUT
 SR:	NEXTPC=FETCH, ALU_CY_IN=ZERO, ALU_OP=RRL, RD_L=ACC, WR_L=ALU, LD_L=ACC
@@ -320,7 +320,6 @@ RRL:	NEXTPC=FETCH, ALU_CY_IN=STATUS, ALU_OP=RRL, RD_L=ACC, WR_L=ALU, LD_L=ACC_ST
 
 
 #TODO
-# For PC-relative, indexed and auto-indexed memory reference instructions is that the contents of the extension register are # substituted for the displacement if the instruction displace equals -128!# 
+# For PC-relative, indexed and auto-indexed memory reference instructions is that the contents of the extension register are # substituted for the displacement if the instruction displace equals -128!#
 # AUTO indexed
 # AUTO indexed -ve before, +ve after!
-
