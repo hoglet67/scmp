@@ -49,8 +49,8 @@ module tangnano20kdock
 
 
    initial begin
-      $readmemh("8060nibl_2400baud_putcfixed_hacked.mi", int_rom);
-      // $readmemh("8060nibl_2400baud_putcfixed.mi", int_rom);
+      // $readmemh("8060nibl_2400baud_putcfixed_hacked.mi", int_rom);
+      $readmemh("8060nibl_2400baud_putcfixed.mi", int_rom);
       // $readmemh("8060nibl_2400baud.mi", int_rom);
       // $readmemh("8060nibl.mi", int_rom);
       // $readmemh("8073nibl.mi", int_rom);
