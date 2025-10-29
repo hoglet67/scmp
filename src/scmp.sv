@@ -151,11 +151,14 @@ output	logic		WR_n
 				status_f2 <= read_bus_lo[2];
 				status_f1 <= read_bus_lo[1];
 				status_f0 <= read_bus_lo[0];
-			end else if (ld_l[LD_L_IX_ST_CY]) begin
-				status_cy <= alu_cy;
-				status_hcy <= alu_hcy;
-			end else if (ld_l[LD_L_IX_ST_OV]) begin
-				status_ov <= alu_ov;
+			end else begin
+				if (ld_l[LD_L_IX_ST_CY]) begin
+					status_cy <= alu_cy;
+					status_hcy <= alu_hcy;
+				end
+				if (ld_l[LD_L_IX_ST_OV]) begin
+					status_ov <= alu_ov;
+				end
 			end
 		end
 	end
