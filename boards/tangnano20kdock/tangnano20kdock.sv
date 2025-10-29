@@ -43,8 +43,6 @@ module tangnano20kdock
 
    logic [7:0]        int_rom[0:4095];
 
-   logic [7:0]        int_ram[0:63];
-
    logic [7:0]        ext_ram[0:4095];
 
 
@@ -53,20 +51,11 @@ module tangnano20kdock
       $readmemh("8060nibl_2400baud_putcfixed.mi", int_rom);
       // $readmemh("8060nibl_2400baud.mi", int_rom);
       // $readmemh("8060nibl.mi", int_rom);
-      // $readmemh("8073nibl.mi", int_rom);
    end
 
    always_ff@(posedge ram_clk)
      begin
         int_rom_D_Q <= int_rom[cpu_addr];
-     end
-
-
-   always_ff@(posedge ram_clk)
-     begin
-        int_ram_D_Q <= int_ram[cpu_addr[5:0]];
-        if (!cpu_WR_n & cpu_addr[11:6] == 6'b111111 & cpu_addr_latched == 4'hf)
-          int_ram[cpu_addr[5:0]] <= cpu_D_o;
      end
 
    always_ff@(posedge ram_clk)
@@ -82,10 +71,6 @@ module tangnano20kdock
           cpu_D_i <= int_rom_D_Q;
         else if (cpu_addr_latched == 4'h1)
           cpu_D_i <= ext_ram_D_Q;
-        else if (cpu_addr[11:6] == 6'b111111 & cpu_addr_latched == 4'hf)
-          cpu_D_i <= int_ram_D_Q;
-        else if (cpu_addr == 12'hd00 & cpu_addr_latched == 4'hf)
-          cpu_D_i <= 8'h80;
         else
           cpu_D_i <= 8'hff;
       else
