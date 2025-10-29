@@ -38,7 +38,7 @@ output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was n
 				begin
 				{ i_HCy, res[3:0] } = A[3:0] + B[3:0] + { {3{1'b0}}, Cy_i };
 				{ Cy_o, res[7:4] } = A[7:4] + B[7:4] + { {3{1'b0}}, i_HCy };
-				Ov_o = res[7] ^ A [7];
+				Ov_o = (B[7] ^~ A[7]) & (res[7] ^ A [7]);
 				Cy_sgn_o = B[7];
 				end
 			ALU_OP_RRL	:
