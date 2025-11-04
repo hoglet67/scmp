@@ -10,15 +10,15 @@ module tangnano20kdock
     input        btn1,
     input        ser_rx,
     output       ser_tx,
-    output [5:0] led_n
+    output [5:0] led_n,
+    output       phi,
+    output [7:0] data
     );
 
 
-   logic         rst_n;
    logic         clk_1m;
    logic         cpu_clk;
    logic         ram_clk;
-   logic         pll_lock;
 
    logic [7:0]        cpu_D_i;
    logic              cpu_sb;
@@ -35,7 +35,11 @@ module tangnano20kdock
    logic              cpu_RD_n;
    logic              cpu_WR_n;
 
-   logic              cpu_rst_n;
+   logic              cpu_sa_i;
+   logic              cpu_sb_i;
+
+   logic              cpu_rst_n = 1'b0;
+   logic [15:0]       reset_counter = 16'h0000;
 
    logic              int_rom_enable;
    logic [11:0]       int_rom_addr;
@@ -101,11 +105,18 @@ module tangnano20kdock
         cpu_D_i <= 8'bZZZZZZZZ;
    end
 
-   assign rst_n = ~btn1;
-   assign cpu_rst_n = rst_n & pll_lock;
    assign ser_tx = !cpu_f0;
-   assign cpu_sb_i = ser_rx;
-   assign cpu_sa_i = 1'b0;
+
+   always_ff@(posedge cpu_clk)
+     begin
+        if (btn1)
+          reset_counter <= 16'h0000;
+        else if (!reset_counter[15])
+          reset_counter <= reset_counter + 1'b1;
+        cpu_rst_n <= reset_counter[15];
+        cpu_sb_i <= ser_rx;
+        cpu_sa_i <= 1'b0;
+     end
 
    scmp cpu
      (
@@ -139,15 +150,12 @@ module tangnano20kdock
    logic   flag_i;
    logic   flag_r;
 
-   always@(posedge cpu_clk, negedge rst_n) begin
-      if (!rst_n)
+   always@(posedge cpu_clk) begin
+      if (!cpu_rst_n)
         { flag_h, flag_d, flag_i, flag_r } <= 4'b0000;
       else if (!cpu_ADS_n)
         { flag_h, flag_d, flag_i, flag_r } <= cpu_D_o[7:4];
    end
-
-   //debug interface
-   assign led_n    = ~ { flag_h, flag_d, flag_i, flag_r, ~ser_rx, ~ser_tx };
 
    rPLL
      #( // For GW1NR-9C C6/I5 (Tang Nano 9K proto dev board)
@@ -173,7 +181,7 @@ module tangnano20kdock
       .CLKIN(sys_clk), // 27 MHz
       .CLKOUTD3(ram_clk), // 8 MHz
       .CLKOUTD(cpu_clk),  // 4 MHz
-      .LOCK(pll_lock)
+      .LOCK()
       );
 
 
@@ -192,5 +200,20 @@ module tangnano20kdock
    //    .CLKOUT(cpu_clk),
    //    .CALIB(1'b1)
    //    );
+
+
+   // For instruction tracing
+   assign phi   = cpu_clk;
+   assign data  = (cpu_ADS_n & cpu_WR_n) ? cpu_D_i : cpu_D_o;
+
+   // led_n[0] =>  D8 = unused (rnw on 6502 so connect cpu_WR_n)
+   // led_n[1] =>  D9 = ADS_n
+   // led_n[2] => D10 = HOLD
+   // led_n[3] => D11 = SA
+   // led_n[4] => D12 = SB
+   //             D13 = unused
+   // led_n[5] => D14 = RST_n
+   //             D15 = async clock
+   assign led_n = { cpu_rst_n, cpu_sb_i, cpu_sa_i, 1'b0, cpu_ADS_n, cpu_WR_n};
 
 endmodule
