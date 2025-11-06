@@ -263,9 +263,9 @@ DLD:
 		BUS=ADSRD
 		BUS=RD, LD_L=D
 		LD_L=D_ACC, RD_L=D
+		NEXTPC=NEXT	# DMB: Add dead cycle
 		BUS=ADSWR, WR_L=ALU, LD_L=D_ACC, RD_L=ACC, ALU_OP=DEC
 		BUS=WR
-		NEXTPC=NEXT	# DMB: Add dead cycle
 		NEXTPC=NEXT	# DMB: Add dead cycle
 		NEXTPC=FETCH	# DMB: Add dead cycle
 
@@ -274,9 +274,9 @@ ILD:
 		BUS=ADSRD
 		BUS=RD, LD_L=D
 		LD_L=D_ACC, RD_L=D
+		NEXTPC=NEXT	# DMB: Add dead cycle
 		BUS=ADSWR, WR_L=ALU, LD_L=D_ACC, RD_L=ACC, ALU_OP=INC
 		BUS=WR
-		NEXTPC=NEXT	# DMB: Add dead cycle
 		NEXTPC=NEXT	# DMB: Add dead cycle
 		NEXTPC=FETCH	# DMB: Add dead cycle
 
