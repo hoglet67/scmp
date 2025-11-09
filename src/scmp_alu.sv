@@ -16,7 +16,7 @@ output  logic		Ov_o,
 output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was negative i.e. EA calc
 	);
 
-	
+
 	logic	i_HCy;
 
 
@@ -28,24 +28,24 @@ output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was n
 
 		Cy_sgn_o = 1'b0;
 		case(op)
-			ALU_OP_AND	:	
+			ALU_OP_AND	:
 				res = A & B;
 			ALU_OP_OR	:
 				res = A | B;
-			ALU_OP_XOR	:	
+			ALU_OP_XOR	:
 				res = A ^ B;
-			ALU_OP_ADD	:	
+			ALU_OP_ADD	:
 				begin
 				{ i_HCy, res[3:0] } = A[3:0] + B[3:0] + { {3{1'b0}}, Cy_i };
 				{ Cy_o, res[7:4] } = A[7:4] + B[7:4] + { {3{1'b0}}, i_HCy };
-				Ov_o = res[7] ^ A [7];
+				Ov_o = (B[7] ^~ A[7]) & (res[7] ^ A [7]);
 				Cy_sgn_o = B[7];
 				end
-			ALU_OP_RRL	:	
+			ALU_OP_RRL	:
 				{ res, Cy_o } = { Cy_i, A };
-			ALU_OP_INC	:	
+			ALU_OP_INC	:
 				{ Cy_o, res } = A + 8'd1;
-			ALU_OP_DEC	:	
+			ALU_OP_DEC	:
 				{ Cy_o, res } = A - 8'd1;
 			ALU_OP_NUL	:
 				res = B;
@@ -61,5 +61,3 @@ output	logic		Cy_sgn_o		// this will be 1 for 8 bit adds where the B input was n
 
 
 endmodule
-
-	

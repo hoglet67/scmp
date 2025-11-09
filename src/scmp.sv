@@ -43,15 +43,15 @@ output	logic		WR_n
 	logic					status_f2;
 	logic					status_f1;
 	logic					status_f0;
-	assign	reg8_status_q = { 
-			status_cy, 
-			status_ov, 
-			sb, 
-			sa, 
-			status_ie, 
-			status_f2, 
-			status_f1, 
-			status_f0 
+	assign	reg8_status_q = {
+			status_cy,
+			status_ov,
+			sb,
+			sa,
+			status_ie,
+			status_f2,
+			status_f1,
+			status_f0
 			};
 
 	//register hi logics
@@ -70,7 +70,7 @@ output	logic		WR_n
 	logic	[7:0]				write_bus_lo;
 	WR_L_t					write_bus_lo_src_oh;
 
-	
+
 	logic	[7:0]				write_bus_hi;
 	WR_H_t					write_bus_hi_src_oh;
 
@@ -151,11 +151,14 @@ output	logic		WR_n
 				status_f2 <= read_bus_lo[2];
 				status_f1 <= read_bus_lo[1];
 				status_f0 <= read_bus_lo[0];
-			end else if (ld_l[LD_L_IX_ST_CY]) begin
-				status_cy <= alu_cy;
-				status_hcy <= alu_hcy;
-			end else if (ld_l[LD_L_IX_ST_OV]) begin
-				status_ov <= alu_ov;
+			end else begin
+				if (ld_l[LD_L_IX_ST_CY]) begin
+					status_cy <= alu_cy;
+					status_hcy <= alu_hcy;
+				end
+				if (ld_l[LD_L_IX_ST_OV]) begin
+					status_ov <= alu_ov;
+				end
 			end
 		end
 	end
@@ -206,8 +209,8 @@ output	logic		WR_n
 				.rst_n(rst_n),
 				.D(write_bus_hi),
 				.ctl_ld(
-					ld_h[LD_H_IX_P0 + gi] 
-					| (		
+					ld_h[LD_H_IX_P0 + gi]
+					| (
 						(	ld_h[LD_H_IX_EA] // effective address
 						|	(ld_h[LD_H_IX_EAM] & reg8_op_q[2])
 						)
@@ -221,13 +224,13 @@ output	logic		WR_n
 				.rst_n(rst_n),
 				.D(write_bus_lo),
 				.ctl_ld(
-					ld_l[LD_L_IX_P0 + gi] 
+					ld_l[LD_L_IX_P0 + gi]
 					| (
-						(	ld_l[LD_L_IX_EA] // effective address	
+						(	ld_l[LD_L_IX_EA] // effective address
 						|	(ld_l[LD_L_IX_EAM] & reg8_op_q[2])
 						)
 						&& 	reg8_op_q[1:0] == gi // this register
-					) 
+					)
 				),
 				.Q(reg8_p_l_q[gi])
 				);
@@ -257,7 +260,7 @@ output	logic		WR_n
 	logic [3:0]	incr4_lo;
 	assign incr4_lo = (alu_cy_sgn)
 		?(read_bus_hi[3:0] - { {3{1'b0}}, ~alu_cy })
-		:(read_bus_hi[3:0] + { {3{1'b0}}, alu_cy }); 
+		:(read_bus_hi[3:0] + { {3{1'b0}}, alu_cy });
 	assign incr4_out = { read_bus_hi[7:4], incr4_lo };
 
 
@@ -277,7 +280,7 @@ output	logic		WR_n
 
 
 	always_comb begin
-		
+
 		case (mcode.alu_cy_in)
 			ALU_CY_IN_ZERO:
 				alu_cy_in <= 1'b0;
@@ -287,7 +290,7 @@ output	logic		WR_n
 				alu_cy_in <= read_bus_lo[0];
 			default:
 				alu_cy_in <= status_cy;
-		endcase				
+		endcase
 	end
 
 
@@ -301,7 +304,7 @@ output	logic		WR_n
 
 	mux_oh mux_read_bus_lo (
 			.sel_oh(read_bus_lo_src_oh),
-			.D('{	
+			.D('{
 				8'hFF,
 				8'hA0,
 				8'hFA,
@@ -331,7 +334,7 @@ output	logic		WR_n
 			.sel_oh(read_bus_hi_src_oh),
 			.D('{
 				rd_ea_h,
-				reg8_addr_h_q,				
+				reg8_addr_h_q,
 				reg8_p_h_q[3],
 				reg8_p_h_q[2],
 				reg8_p_h_q[1],
@@ -344,7 +347,7 @@ output	logic		WR_n
 
 	mux_oh mux_write_bus_lo (
 			.sel_oh(write_bus_lo_src_oh),
-			.D('{	
+			.D('{
 				alu_Q,
 				read_bus_lo,
 				read_bus_hi
@@ -356,7 +359,7 @@ output	logic		WR_n
 	mux_oh mux_write_bus_hi (
 			.sel_oh(write_bus_hi_src_oh),
 			.D('{	incr4_out,
-				read_bus_lo,				
+				read_bus_lo,
 				read_bus_hi
 				}),
 			.Q(write_bus_hi)
@@ -378,7 +381,7 @@ output	logic		WR_n
 	assign	sout = r_sout;
 
 	always_ff @(posedge clk) begin
-		if (ld_l[LD_L_IX_SOUT]) 
+		if (ld_l[LD_L_IX_SOUT])
 			r_sout <= alu_cy;
 	end
 
