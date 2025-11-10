@@ -9,7 +9,7 @@ output	logic			op_dly
 	always_comb begin
 		op_dly <= 1'b0;
 		if (((op ^ 8'b11001100) & 8'b11111111) == 8'b00000000)
-			op_pc <= UCLBL_FETCH;
+			op_pc <= UCLBL_ILLEGAL;
 		else if (((op ^ 8'b00000000) & 8'b11111111) == 8'b00000000)
 			op_pc <= UCLBL_HALT;
 		else if (((op ^ 8'b10001111) & 8'b11111111) == 8'b00000000)
@@ -70,6 +70,6 @@ output	logic			op_dly
 		else if (((op ^ 8'b00011111) & 8'b11111111) == 8'b00000000)
 			op_pc <= UCLBL_RRL;
 		else
-			op_pc <= UCLBL_FETCH;
+			op_pc <= UCLBL_ILLEGAL;
 	end
 endmodule
