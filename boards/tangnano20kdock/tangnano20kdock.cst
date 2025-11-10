@@ -3,6 +3,8 @@ IO_LOC  "sys_clk" 4;  // 27MHZ Crystal Oscillator
 
 
 //IO_LOC  "sys_clk" 11;  // SY5351 clock 1
+IO_PORT "sys_clk" IO_TYPE=LVCMOS33;
+
 
 // Button 1
 IO_LOC  "btn1" 88;
