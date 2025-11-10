@@ -470,7 +470,7 @@ print $fh_out_pak "} MCODE_t;\n";
 
 print $fh_out_pak "\n";
 print $fh_out_pak "typedef logic [7:0] MCODE_IX_t;\n";
-foreach my $lbl (keys %code_labels) {
+foreach my $lbl (sort keys %code_labels) {
 	print $fh_out_pak "const MCODE_IX_t UCLBL_$lbl = ${sz_pc}'d$code_labels{$lbl};\n";
 }
 
