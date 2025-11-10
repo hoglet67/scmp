@@ -191,6 +191,8 @@ SECTION:CTL,BITMAP,8
 	CYOP0
 	IEOP0
 
+#CODESTART, marks the start of microcode. The parameter after "="" is the number of bits required for the 
+#microcode program counter
 CODESTART=7
 
 #NOTE: FETCH MUST be the first line!
@@ -339,3 +341,42 @@ RRL:	NEXTPC=FETCH, ALU_CY_IN=STATUS, ALU_OP=RRL, RD_L=ACC, WR_L=ALU, LD_L=ACC_ST
 # For PC-relative, indexed and auto-indexed memory reference instructions is that the contents of the extension register are # substituted for the displacement if the instruction displace equals -128!#
 # AUTO indexed
 # AUTO indexed -ve before, +ve after!
+
+
+
+DECODER=
+
+#ILLEGALS
+11001100	FETCH		# store and modify pc, others allowed but branch thru to their immediate equivalents
+
+#VALIDS
+
+00000000	HALT
+10001111	DLY
+00000001	XAE
+11001---	ST
+11101---	DAD
+11110---	ADD
+11111---	CAD
+11------	LD
+01101000	DAE
+01110000	ADE
+01111000	CAE
+01---000	LDE
+101010--	ILD
+101110--	DLD
+1001----	JMP
+001100--	XPAL
+001101--	XPAH
+001111--	XPPC
+0000001-	_CL		
+0000010-	_IE
+00000110	CSA
+00000111	CAS
+00001000	NOP
+00011001	SIO
+00011100	SR
+00011101	SRL
+00011110	RR
+00011111	RRL
+

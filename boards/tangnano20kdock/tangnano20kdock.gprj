@@ -11,7 +11,7 @@
         <File path="../../src/scmp.sv" type="file.verilog" enable="1"/>
         <File path="../../src/scmp_alu.sv" type="file.verilog" enable="1"/>
         <File path="../../src/scmp_micrcode.sv" type="file.verilog" enable="1"/>
-        <File path="../../src/scmp_microcode_oppc.sv" type="file.verilog" enable="1"/>
+        <File path="../../src/scmp_microcode_oppc.gen.sv" type="file.verilog" enable="1"/>
         <File path="../../src/scmp_microcode_pla.gen.pak.sv" type="file.verilog" enable="1"/>
         <File path="../../src/scmp_microcode_pla.gen.sv" type="file.verilog" enable="1"/>
         <File path="tangnano20kdock.cst" type="file.cst" enable="1"/>

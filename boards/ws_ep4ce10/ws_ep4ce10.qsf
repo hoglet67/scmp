@@ -60,7 +60,7 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_ws_ep4ce10 -section_id
 set_global_assignment -name EDA_TEST_BENCH_FILE ../../tb/tb_ws_ep4ce10.sv -section_id tb
 set_global_assignment -name SDC_FILE ws_ep4ce10.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE ../../src/scmp_microcode_pla.gen.pak.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../../src/scmp_microcode_oppc.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../src/scmp_microcode_oppc.gen.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../src/scmp_microcode_pla.gen.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../src/seg8_4.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../src/seg_8.sv

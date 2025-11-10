@@ -25,15 +25,116 @@ sub header($) {
 	print $fh "\n";
 }
 
+# output enough tabs and spaces to pad a string of length $l to $w, $TABWIDTH defines tab size
+# NOTE: $w2 will be rounded up to next TAB stop
+sub pad($$) {	
+	my ($l, $w) = @_;
+	my $w2 = $TABWIDTH * ceil($w/$TABWIDTH);
+
+	$w2 -= $l;
+
+	return "\t" x ceil($w2/$TABWIDTH);
+}
+
+sub bounds_check($$$) {
+	my ($val, $cur_section, $curs) = @_;
+
+	if ($curs->{type} eq "INDEX") {
+		$val < 2**$curs->{size} || die sprintf "Value (%d) too large for INDEX size %s:%d", $val, $cur_section, $curs->{size};
+	} elsif ($curs->{type} eq "BITMAP" || $curs->{type} eq "ONEHOT") {
+		$val < 2**$curs->{size} || die sprintf "Value (%d) too large for BITMAP/ONEHOT size %s:%d", $val, $cur_section, $curs->{size};		
+		$curs->{type} eq "ONEHOT" && countbits($val) > 1 && die sprintf "More than one bit (%b) set in ONEHOT %s", $val, $cur_section;
+	} elsif ($curs->{type} eq "SIGNED") {
+		(
+			$val >= -(2**($curs->{size}-1))
+		&&	$val < (2**($curs->{size}-1))
+		)	|| die sprintf "Value (%d) too large for SIGNED size %s:%d", $val, $cur_section, $curs->{size};
+	} else {
+		die "Unknown type ($curs->{type}) in bounds_check $cur_section";
+	}
+}
+
+sub parseval($$$) {
+	my ($vs,$cur_section,$curs) = @_;
+
+	if ($vs =~ /^([^\|]+)\|(.*)$/) {
+		return parseval($1,$cur_section,$curs) | parseval($2,$cur_section,$curs);
+	} else {
+		if ($vs =~ /^[a-zA-Z]/) {
+			my ($vv) = grep { $vs eq $_->{name} } @{$curs->{values}};
+			if (!$vv) {
+				($vv) = grep { $vs eq $_->{name} } @{$curs->{named_values}};
+			}
+			if (!$vv) {
+				($vv) = grep { $vs eq $_->{name} } @{$curs->{indices}};
+				if ($vv) {
+					return $vv;
+				}
+			}
+			$vv || die "Cannot find value $vs in section $cur_section in parseval";
+			return parseval($vv->{value}, $cur_section, $curs);
+		} else {
+			$vs =~ /^\d*\'([dbx])(.*?)\s*$/ || die "Expecting numeric literal got \"$vs\" in parseval";
+			my ($base, $v) = ($1, $2);
+			if ($base eq "b") {
+				return oct("0b" . $v);
+			} elsif ($base eq "d") {
+				return $v;
+			} elsif ($base eq "h") {
+				return hex($v);
+			} else {
+				die "Unexpected base ($base) in parseval";
+			}
+		} 
+	}
+}
+
+sub countbits($) {
+	my ($v) = @_;
+	my $count = 0;
+	while ($v) {
+		if ($v & 0x1) {
+			$count++;
+		}
+
+		$v >>= 1;
+	}
+	return $count;
+}
+
+# find nearest label before the index, return label, offset
+sub find_label_before($$) {
+	my ($lab_hash, $ix) = @_;
+	my $offs = $ix;
+	my $ret = "";
+	for my $k (keys(%$lab_hash)) {
+		my $kix = $lab_hash->{$k};
+		if ($kix <= $ix && $ix - $kix < $offs)
+		{
+			$offs = $ix - $kix;
+			$ret = $k
+		}
+	}
+	return ($ret, $offs);
+}
+
 my $fn_in = shift || usage "No input file";
 my $dir_out = shift || usage "No output directory";
 -d $dir_out || usage "$dir_out is not a directory";
 
 my $fn_out_v = "$dir_out/scmp_microcode_pla.gen.sv";
 my $fn_out_pak = "$dir_out/scmp_microcode_pla.gen.pak.sv";
+my $fn_out_oppc = "$dir_out/scmp_microcode_oppc.gen.sv";
 
 open(my $fh_in, "<", $fn_in) || die "Cannot open \"$fn_in\" for input";
 
+
+######################################################################
+#  __        __   __   ___            __       ___					 #
+# |__)  /\  |__) /__` |__     | |\ | |__) |  |  |					 #
+# |    /~~\ |  \ .__/ |___    | | \| |    \__/  |					 #
+#																	 #
+######################################################################
 
 my $state = 0; #state machine for reading input 0 = defs, 1 = code
 my $cur_section;
@@ -47,8 +148,9 @@ my $sz_pc;
 
 my @microcode=();
 my @branches=();
+my @decoder=();
 
-while (<$fh_in>) {
+PARSE_M_LOOP:while (<$fh_in>) {
 	my $l = $_;
 	$l =~ s/[\s|\r]+$//;
 	$l =~ s/\s*#.*//;
@@ -166,6 +268,10 @@ while (<$fh_in>) {
 	} elsif ($state == 1) {
 		# microcode
 
+		if ($l =~ /^\s*DECODER=.*$/) {
+			$state = 2;	
+			next PARSE_M_LOOP;
+		}
 
 		if ($l =~ /^(\w+):(\s*)(.*?)$/) {
 			$l = " " . $3;
@@ -226,12 +332,26 @@ while (<$fh_in>) {
 				}
 			}
 
-
 		} else {
 
 			$l =~ /^\s*$/ ||
 				die "unrecognized line in code section : $l";
 			
+		}
+
+	} elsif ($state == 2) {
+		# decode array
+
+		if ($l =~ /([01-]{8})\s+(\w+)/) {
+			my ($pat, $lab) = ($1, $2);	
+			my $mas = $pat =~ tr/01-/110/r;	
+			my $xor = $pat =~ tr/01-/010/r;	
+
+			push @decoder, {
+				lab => $lab,
+				mask => oct ("0b$mas"),
+				xor => oct ("0b$xor")
+			};
 		}
 
 	} else {
@@ -244,13 +364,25 @@ while ($code_ix > (1<<$code_bits)) {
 	$code_bits++;
 }
 
+###############################################################################
+#                         __   ___     __   __             __        ___  __
+# /\  |\ |  /\  |    \ / /__` |__     |__) |__)  /\  |\ | /  ` |__| |__  /__`
+#/~~\ | \| /~~\ |___  |  .__/ |___    |__) |  \ /~~\ | \| \__, |  | |___ .__/
+#
+###############################################################################
+# analyse branch distances to ascertain number of bit required
 
 printf "microcode length %d (max=0x%02x), bits=%d\n", $code_ix, $code_ix-1, $code_bits;
 
-my $min_bra=0; my $max_bra=0; my $bra_bits = 0;
+my $min_bra=0; 		# smallest (poss. negative)
+my $max_bra=0; 		# larges positive
+my $bra_bits = 0;	# number of bits needed
+my $big_bra=0;		# largest magnitude
+my $big_bra_desc="";# labels from->to
 for my $b (@branches) {
 	my ($from, $to_label) = ($b->{from}, $b->{to});
 	my $to = %code_labels{$to_label};
+	my ($from_label, $from_label_offs) = find_label_before(\%code_labels, $from);
 
 	defined($to) || die "No label $to_label"; 
 
@@ -278,10 +410,107 @@ for my $b (@branches) {
 		}
 
 	}
+	if (abs($disp) > $big_bra) {
+		$big_bra = abs($disp);
+		$big_bra_desc = "${from_label}+${from_label_offs}->${to_label}";
+	} elsif (abs($disp) == $big_bra) {
+		$big_bra_desc = $big_bra_desc . "; ${from_label}+${from_label_offs}->${to_label}";
+	}
 }
 
 printf "branch range %d<x<%d (0x%02x<x<0x%02x), bits=%d\n", $min_bra, $max_bra, $min_bra & 0xfff, $max_bra, $bra_bits+1;
+printf "largest branch : %d : %s\n", $big_bra, $big_bra_desc;
 
+
+# report the decoder array as a table of microop labels
+
+print "opcodes to micrcode lables table\n";
+print "m\\l|";
+foreach my $c (0..15) {
+	printf "   %1x |", $c;
+}
+print "\n";
+
+foreach my $r (0..15) {
+	printf "   |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|\n";
+	printf "%1x  |", $r;
+	foreach my $c (0..15) {
+		my $opc = ($r << 4) + $c;
+
+		my $fnd;
+		# find in decoder table
+		DD:foreach my $d (@decoder) {
+			if ((($opc ^ $d->{xor}) & $d->{mask}) == 0) {
+				$fnd = $d->{lab};
+				last DD; 
+			}
+		}
+		
+		$fnd =~ s/FETCH/-/;
+
+		printf "%5s|", $fnd;
+
+	}
+	print "\n";
+}
+
+##############################################################################
+# __       ___  __       ___     __   ___  __   __   __   ___  __
+#/  \ |  |  |  |__) |  |  |     |  \ |__  /  ` /  \ |  \ |__  |__)
+#\__/ \__/  |  |    \__/  |     |__/ |___ \__, \__/ |__/ |___ |  \
+#
+##############################################################################
+#TODO: move delay bodge to microcode as an extra flag
+open(my $fh_out_oppc, ">", $fn_out_oppc) || die "Cannot open \"$fn_out_oppc\" for output";
+
+print $fh_out_oppc "import scmp_microcode_pak::*;
+
+module scmp_microcode_oppc (
+input\tlogic\t[7:0]\top,
+output\tNEXTPC_t\t\top_pc,
+output\tlogic\t\t\top_dly
+);
+
+\talways_comb begin
+\t\top_dly <= 1'b0;
+";
+	my $df = 1;
+	foreach my $d (@decoder) {
+
+		print $fh_out_oppc "\t\t";
+		if ($df) {
+			$df = 0;
+		} else {
+			print $fh_out_oppc "else ";		
+		}
+		printf $fh_out_oppc "if (((op ^ 8'b%08b) & 8'b%08b) == 8'b00000000)\n", $d->{xor}, $d->{mask};
+        if ($d->{lab} eq "DLY") {
+            printf $fh_out_oppc "\t\tbegin\n";
+        }
+        printf $fh_out_oppc "\t\t\top_pc <= UCLBL_%s;\n", $d->{lab};
+        if ($d->{lab} eq "DLY") {
+            printf $fh_out_oppc "\t\t\top_dly <= 1'b1;\n";
+        }
+        if ($d->{lab} eq "DLY") {
+            printf $fh_out_oppc "\t\tend\n";
+        }
+	}
+
+print $fh_out_oppc "\t\telse
+\t\t\top_pc <= UCLBL_FETCH;
+\tend
+endmodule";
+
+close($fh_out_oppc);
+
+
+
+##############################################################################
+# __       ___  __       ___     __
+#/  \ |  |  |  |__) |  |  |     |__) |     /\
+#\__/ \__/  |  |    \__/  |     |    |___ /~~\
+#
+##############################################################################
 
 open(my $fh_out_v, ">", $fn_out_v) || die "Cannot open \"$fn_out_v\" for output";
 
@@ -478,79 +707,3 @@ printf $fh_out_pak "typedef logic [%d:0] MCODE_PC_t;\n", $sz_pc-1;
 
 print $fh_out_pak "endpackage";
 
-# output enough tabs and spaces to pad a string of length $l to $w, $TABWIDTH defines tab size
-# NOTE: $w2 will be rounded up to next TAB stop
-sub pad($$) {	
-	my ($l, $w) = @_;
-	my $w2 = $TABWIDTH * ceil($w/$TABWIDTH);
-
-	$w2 -= $l;
-
-	return "\t" x ceil($w2/$TABWIDTH);
-}
-
-sub bounds_check($$$) {
-	my ($val, $cur_section, $curs) = @_;
-
-	if ($curs->{type} eq "INDEX") {
-		$val < 2**$curs->{size} || die sprintf "Value (%d) too large for INDEX size %s:%d", $val, $cur_section, $curs->{size};
-	} elsif ($curs->{type} eq "BITMAP" || $curs->{type} eq "ONEHOT") {
-		$val < 2**$curs->{size} || die sprintf "Value (%d) too large for BITMAP/ONEHOT size %s:%d", $val, $cur_section, $curs->{size};		
-		$curs->{type} eq "ONEHOT" && countbits($val) > 1 && die sprintf "More than one bit (%b) set in ONEHOT %s", $val, $cur_section;
-	} elsif ($curs->{type} eq "SIGNED") {
-		(
-			$val >= -(2**($curs->{size}-1))
-		&&	$val < (2**($curs->{size}-1))
-		)	|| die sprintf "Value (%d) too large for SIGNED size %s:%d", $val, $cur_section, $curs->{size};
-	} else {
-		die "Unknown type ($curs->{type}) in bounds_check $cur_section";
-	}
-}
-
-sub parseval($$$) {
-	my ($vs,$cur_section,$curs) = @_;
-
-	if ($vs =~ /^([^\|]+)\|(.*)$/) {
-		return parseval($1,$cur_section,$curs) | parseval($2,$cur_section,$curs);
-	} else {
-		if ($vs =~ /^[a-zA-Z]/) {
-			my ($vv) = grep { $vs eq $_->{name} } @{$curs->{values}};
-			if (!$vv) {
-				($vv) = grep { $vs eq $_->{name} } @{$curs->{named_values}};
-			}
-			if (!$vv) {
-				($vv) = grep { $vs eq $_->{name} } @{$curs->{indices}};
-				if ($vv) {
-					return $vv;
-				}
-			}
-			$vv || die "Cannot find value $vs in section $cur_section in parseval";
-			return parseval($vv->{value}, $cur_section, $curs);
-		} else {
-			$vs =~ /^\d*\'([dbx])(.*?)\s*$/ || die "Expecting numeric literal got \"$vs\" in parseval";
-			my ($base, $v) = ($1, $2);
-			if ($base eq "b") {
-				return oct("0b" . $v);
-			} elsif ($base eq "d") {
-				return $v;
-			} elsif ($base eq "h") {
-				return hex($v);
-			} else {
-				die "Unexpected base ($base) in parseval";
-			}
-		} 
-	}
-}
-
-sub countbits($) {
-	my ($v) = @_;
-	my $count = 0;
-	while ($v) {
-		if ($v & 0x1) {
-			$count++;
-		}
-
-		$v >>= 1;
-	}
-	return $count;
-}
