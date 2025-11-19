@@ -41,64 +41,35 @@ module tangnano20kdock
    logic              cpu_rst_n = 1'b0;
    logic [15:0]       reset_counter = 16'h0000;
 
-   logic              int_rom_enable;
-   logic [11:0]       int_rom_addr;
-   logic [7:0]        int_rom[0:4095];
-   logic [7:0]        int_rom_D_Q;
-
    logic              ext_ram_enable;
-   logic [14:0]       ext_ram_addr;
-   logic [7:0]        ext_ram[0:32767];
+   logic              ext_ram_wr;
+   logic [15:0]       ext_ram_addr;
+   logic [7:0]        ext_ram[0:65535];
    logic [7:0]        ext_ram_D_Q;
 
-   logic              ext_rom_enable;
-   logic [13:0]       ext_rom_addr;
-   logic [7:0]        ext_rom[0:16383];
-   logic [7:0]        ext_rom_D_Q;
-
-
    initial begin
-      // $readmemh("8060nibl_2400baud_putcfixed_hacked.mi", int_rom);
-      $readmemh("8060nibl_2400baud_putcfixed.mi", int_rom);
-      // $readmemh("8060nibl_2400baud.mi", int_rom);
-      // $readmemh("8060nibl.mi", int_rom);
-      $readmemh("MON_NIBLFP.mi", ext_rom);
+      $readmemh("8060nibl_2400baud_putcfixed.mi", ext_ram, 'h0000);
+      $readmemh("KitBug++.mi",                    ext_ram, 'h2000);
+      $readmemh("MON_NIBLFP.mi",                  ext_ram, 'hC000);
    end
 
    always_comb begin
-      int_rom_enable = (cpu_addr_latched == 4'h0);
-      int_rom_addr   = cpu_addr;
-      ext_ram_enable = (cpu_addr_latched >= 4'h1 && cpu_addr_latched <= 4'h8);
-      ext_ram_addr   = {cpu_addr_latched[2:0], cpu_addr};
-      ext_rom_enable = (cpu_addr_latched >= 4'hC);
-      ext_rom_addr   = {cpu_addr_latched[1:0], cpu_addr};
+      ext_ram_enable = 1'b1;      
+      ext_ram_wr     = (cpu_addr_latched == 4'h1 || (cpu_addr_latched >= 4'h3 && cpu_addr_latched <= 4'hB));
+      ext_ram_addr   = {cpu_addr_latched, cpu_addr};
    end
-
-   always_ff@(posedge ram_clk)
-     begin
-        int_rom_D_Q <= int_rom[int_rom_addr];
-     end
 
    always_ff@(posedge ram_clk)
      begin
         ext_ram_D_Q <= ext_ram[ext_ram_addr];
-        if (!cpu_WR_n & ext_ram_enable)
+        if (!cpu_WR_n & ext_ram_enable & ext_ram_wr)
           ext_ram[ext_ram_addr] <= cpu_D_o;
-     end
-
-   always_ff@(posedge ram_clk)
-     begin
-        ext_rom_D_Q <= ext_rom[ext_rom_addr];
      end
 
    always_comb begin
       if (!cpu_RD_n)
-        if (int_rom_enable)
-          cpu_D_i <= int_rom_D_Q;
-        else if (ext_ram_enable)
+        if (ext_ram_enable)
           cpu_D_i <= ext_ram_D_Q;
-        else if (ext_rom_enable)
-          cpu_D_i <= ext_rom_D_Q;
         else
           cpu_D_i <= 8'hff;
       else
