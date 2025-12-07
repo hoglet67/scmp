@@ -5,7 +5,7 @@ module tm1638
    input       reset,
 
    input       wr,
-   input [7:0] mask,
+   input [7:0] mask,       // bit 7 is the left most
    input [7:0] data,
 
    output reg  tm1638_clk,
@@ -51,7 +51,7 @@ module tm1638
          wr_last <= wr;
          if (wr & !wr_last) begin
             for (i = 0; i < 8; i = i + 1) begin
-               if (mask[i])
+               if (mask[7-i])
                  display[i] <= data ^ 8'h80; // The DP (bit 7) is active low, so invert
             end
             send <= 1'b1;
