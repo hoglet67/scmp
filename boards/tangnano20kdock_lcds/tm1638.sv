@@ -38,24 +38,21 @@ module tm1638
    reg [4:0] state = 0;
    reg [4:0] bitcount = 0;
    reg [7:0] dout = 0;
-   reg       send = 0;
+   reg       send_req = 0;
+   reg       send_ack = 0;
    reg       wr_last = 0;
    reg       tm1638_do = 1;
 
    integer   i;
 
-
    always @(posedge clk) begin
-      if (clken) begin
-         send <= 1'b0;
-         wr_last <= wr;
-         if (wr & !wr_last) begin
-            for (i = 0; i < 8; i = i + 1) begin
-               if (mask[7-i])
-                 display[i] <= data ^ 8'h80; // The DP (bit 7) is active low, so invert
-            end
-            send <= 1'b1;
+      wr_last <= wr;
+      if (wr & !wr_last) begin
+         for (i = 0; i < 8; i = i + 1) begin
+            if (mask[7-i])
+              display[i] <= data ^ 8'h80; // The DP (bit 7) is active low, so invert
          end
+         send_req <= !send_req;
       end
    end
 
@@ -151,7 +148,7 @@ module tm1638
          end
 
          case (state)
-           `ST_IDLE: if (send) state <= `ST_DM;
+           `ST_IDLE: if (send_req != send_ack) begin state <= `ST_DM; send_ack <= send_req; end
            `ST_DM: if (bitcount == 19) state <= `ST_DI;
            `ST_DI: if (bitcount == 19) state <= `ST_DA;
            `ST_DA: if (bitcount == 19) state <= `ST_D0;
