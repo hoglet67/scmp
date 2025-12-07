@@ -68,7 +68,7 @@ module lcds
    logic [4:0]        joystick1 = 5'b11111;
    logic [4:0]        joystick2 = 5'b11111;
    logic [5:0]        jumper = 6'b11111;
-   logic              last_cpu_clk = 1'b0;
+   logic [1:0]        last_cpu_clks = 1'b00;
    logic [3:0]        sr_counter = 4'b0000;
    logic [15:0]       sr_mirror = 16'h0000;
 
@@ -246,7 +246,7 @@ module lcds
 
    always@(posedge sys_clk) begin
       // external 74LV165A clocked on rising edge, so work here on falling edge
-      if (!cpu_clk && last_cpu_clk) begin
+      if (last_cpu_clks == 2'b10) begin
          js_load_n <= !(sr_counter == 4'b1111);
          if (sr_counter == 4'b0000) begin
             joystick1 <= sr_mirror[12:8];
@@ -256,7 +256,7 @@ module lcds
          sr_mirror  <= {sr_mirror[14:0], js_data};
          sr_counter <= sr_counter + 1'b1;
       end
-      last_cpu_clk <= cpu_clk;
+      last_cpu_clks <= {last_cpu_clks[0], cpu_clk};
     end
 
    assign halt_mode = jumper[0];
