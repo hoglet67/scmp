@@ -1,0 +1,8 @@
+#*
+*~
+impl/gwsynthesis/
+impl/pnr/
+impl/temp/
+*.gprj.user
+a.out
+dump.vcd

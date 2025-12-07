@@ -1,0 +1,21 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Sun Oct 26 09:45:39 2025
+[*]
+[dumpfile] "/home/dmb/git/hoglet67/scmp/boards/tangnano20kdock/dump.vcd"
+[dumpfile_mtime] "Sun Oct 26 09:44:20 2025"
+[dumpfile_size] 809350
+[savefile] "/home/dmb/git/hoglet67/scmp/boards/tangnano20kdock/tangnano20kdock.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] -1 -1
+*-23.100000 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_tangnano20kdock.
+[sst_width] 284
+[signals_width] 78
+[sst_expanded] 1
+[sst_vpaned_height] 171
+@28
+tb_tangnano20kdock.ser_tx
+[pattern_trace] 1
+[pattern_trace] 0

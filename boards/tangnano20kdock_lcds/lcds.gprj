@@ -1,0 +1,23 @@
+<?xml version="1" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW2AR-18C" pn="GW2AR-LV18QN88C8/I7">gw2ar18c-000</Device>
+    <FileList>
+        <File path="keypad.sv" type="file.verilog" enable="1"/>
+        <File path="lcds.sv" type="file.verilog" enable="1"/>
+        <File path="ps2_intf.sv" type="file.verilog" enable="1"/>
+        <File path="tm1638.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/mux_oh.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/reg8.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/scmp.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/scmp_alu.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/scmp_micrcode.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/scmp_microcode_oppc.gen.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/scmp_microcode_pla.gen.pak.sv" type="file.verilog" enable="1"/>
+        <File path="/home/dmb/git/hoglet67/scmp/src/scmp_microcode_pla.gen.sv" type="file.verilog" enable="1"/>
+        <File path="lcds.cst" type="file.cst" enable="1"/>
+        <File path="lcds.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>
