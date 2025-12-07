@@ -12,8 +12,10 @@ module lcds
     input        ps2_clk,
     input        ps2_data,
     output       ser_tx,
+    input        js_data,
+    output       js_clk,
+    output reg   js_load_n,
     output [5:0] led_n,
-    output       phi,
     output [7:0] data
     );
 
@@ -62,6 +64,13 @@ module lcds
    logic              mhz1_clken;
    logic [1:0]        mhz1_counter = 2'b00;
 
+   // Joystick / Config Shift Register
+   logic [4:0]        joystick1 = 5'b11111;
+   logic [4:0]        joystick2 = 5'b11111;
+   logic [5:0]        jumper = 6'b11111;
+   logic              last_cpu_clk = 1'b0;
+   logic [3:0]        sr_counter = 4'b0000;
+   logic [15:0]       sr_mirror = 16'h0000;
 
    // Memory Map
    // 0000-6FFF not used
@@ -96,7 +105,7 @@ module lcds
       ext_ram_addr   = {cpu_addr_latched, cpu_addr};
       key_enable     = {cpu_addr_latched, cpu_addr[11:8]} == 8'h70;
       disp_wr        = !cpu_WR_n & key_enable;
-      disp_data      = {1'b0, cpu_D_o[6:0]};
+      disp_data      = {1'b1, cpu_D_o[6:0]};
    end
 
    always_ff@(posedge ram_clk)
@@ -206,7 +215,7 @@ module lcds
       .ps2_clk(ps2_clk),
       .ps2_data(ps2_data),
       .col(cpu_addr[4:0]),
-      .halt_mode(1'b1),
+      .halt_mode(halt_mode),
       .row(key_data),
       .halt_sw(),
       .init_sw()
@@ -232,9 +241,31 @@ module lcds
       .tm1638_dio(tm1638_dio)
       );
 
+
+   // DIP Switches
+
+   always@(posedge sys_clk) begin
+      // external 74LV165A clocked on rising edge, so work here on falling edge
+      if (!cpu_clk && last_cpu_clk) begin
+         js_load_n <= !(sr_counter == 4'b1111);
+         if (sr_counter == 4'b0000) begin
+            joystick1 <= sr_mirror[12:8];
+            joystick2 <= sr_mirror[4:0];
+            jumper    <= sr_mirror[7:5] & sr_mirror[15:13];
+         end
+         sr_mirror  <= {sr_mirror[14:0], js_data};
+         sr_counter <= sr_counter + 1'b1;
+      end
+      last_cpu_clk <= cpu_clk;
+    end
+
+   assign halt_mode = jumper[0];
+   assign halt_inst = jumper[1];
+   assign run_mode  = jumper[2];
+
    // For instruction tracing
-   assign phi   = cpu_clk;
-   assign data  = (cpu_ADS_n & cpu_WR_n) ? cpu_D_i : cpu_D_o;
+   assign js_clk = cpu_clk;
+   assign data   = (cpu_ADS_n & cpu_WR_n) ? cpu_D_i : cpu_D_o;
 
    // led_n[0] =>  D8 = unused (rnw on 6502 so connect cpu_WR_n)
    // led_n[1] =>  D9 = ADS_n
@@ -247,6 +278,6 @@ module lcds
 
    // assign led_n = { cpu_rst_n, cpu_sb_i, cpu_sa_i, 1'b0, cpu_ADS_n, cpu_WR_n};
 
-   assign led_n = { tm1638_dio, tm1638_clk, tm1638_stb, 1'b0, cpu_ADS_n, cpu_WR_n};
+   assign led_n = { tm1638_dio, tm1638_clk, tm1638_stb, halt_mode, cpu_ADS_n, cpu_WR_n};
 
 endmodule
