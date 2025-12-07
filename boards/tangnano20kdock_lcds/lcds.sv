@@ -68,7 +68,6 @@ module lcds
    logic [4:0]        joystick1 = 5'b11111;
    logic [4:0]        joystick2 = 5'b11111;
    logic [5:0]        jumper = 6'b11111;
-   logic [1:0]        last_cpu_clks = 1'b00;
    logic [3:0]        sr_counter = 4'b0000;
    logic [15:0]       sr_mirror = 16'h0000;
 
@@ -244,19 +243,16 @@ module lcds
 
    // DIP Switches
 
-   always@(posedge sys_clk) begin
+   always@(negedge cpu_clk) begin
       // external 74LV165A clocked on rising edge, so work here on falling edge
-      if (last_cpu_clks == 2'b10) begin
-         js_load_n <= !(sr_counter == 4'b1111);
-         if (sr_counter == 4'b0000) begin
-            joystick1 <= sr_mirror[12:8];
-            joystick2 <= sr_mirror[4:0];
-            jumper    <= sr_mirror[7:5] & sr_mirror[15:13];
-         end
-         sr_mirror  <= {sr_mirror[14:0], js_data};
-         sr_counter <= sr_counter + 1'b1;
+      js_load_n <= !(sr_counter == 4'b1111);
+      if (sr_counter == 4'b0000) begin
+         joystick1 <= sr_mirror[12:8];
+         joystick2 <= sr_mirror[4:0];
+         jumper    <= sr_mirror[7:5] & sr_mirror[15:13];
       end
-      last_cpu_clks <= {last_cpu_clks[0], cpu_clk};
+      sr_mirror  <= {sr_mirror[14:0], js_data};
+      sr_counter <= sr_counter + 1'b1;
     end
 
    assign halt_mode = jumper[0];
