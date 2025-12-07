@@ -180,10 +180,10 @@ module lcds
    end
 
    rPLL
-     #( // For GW1NR-9C C6/I5 (Tang Nano 9K proto dev board)
+     #(
         .FCLKIN("27"),
         .IDIV_SEL(8), // -> PFD = 3 MHz (range: 3-400 MHz)
-        .FBDIV_SEL(7), // -> CLKOUT = 24 MHz (range: 3.125-600 MHz)
+        .FBDIV_SEL(10), // -> CLKOUT = 24 MHz (range: 3.125-600 MHz) // HACKED to 33MHz so 880 baud => ~1200 baud
         .DYN_SDIV_SEL(6),
         .ODIV_SEL(32) // -> VCO = 768 MHz (range: 600-1200 MHz)
         )
