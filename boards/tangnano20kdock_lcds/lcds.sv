@@ -42,6 +42,7 @@ module lcds
    logic              cpu_sa_i;
    logic              cpu_sb_i;
 
+   logic              powerup_rst_n = 1'b0;
    logic              cpu_rst_n = 1'b0;
    logic [15:0]       reset_counter = 16'h0000;
 
@@ -70,6 +71,9 @@ module lcds
    logic [5:0]        jumper = 6'b11111;
    logic [3:0]        sr_counter = 4'b0000;
    logic [15:0]       sr_mirror = 16'h0000;
+
+   logic              init_sw;
+   logic              halt_sw;
 
    // Memory Map
    // 0000-6FFF not used
@@ -134,7 +138,8 @@ module lcds
           reset_counter <= 16'h0000;
         else if (!reset_counter[15])
           reset_counter <= reset_counter + 1'b1;
-        cpu_rst_n <= reset_counter[15];
+        powerup_rst_n <= reset_counter[15];
+        cpu_rst_n <= !((!powerup_rst_n) | init_sw);
         cpu_sb_i <= ser_rx;
         cpu_sa_i <= 1'b0;
      end
@@ -210,14 +215,14 @@ module lcds
    keypad keypad
      (
       .clk(sys_clk),
-      .reset(~cpu_rst_n),
+      .reset(!powerup_rst_n),
       .ps2_clk(ps2_clk),
       .ps2_data(ps2_data),
       .col(cpu_addr[4:0]),
       .halt_mode(halt_mode),
       .row(key_data),
-      .halt_sw(),
-      .init_sw()
+      .halt_sw(halt_sw),
+      .init_sw(init_sw)
       );
 
    // Display
@@ -231,7 +236,7 @@ module lcds
      (
       .clk(cpu_clk),
       .clken(mhz1_clken),
-      .reset(~cpu_rst_n),
+      .reset(!powerup_rst_n),
       .wr(disp_wr),
       .mask({1'b0, cpu_addr[5:2], 1'b0, cpu_addr[1:0]}),
       .data(disp_data),

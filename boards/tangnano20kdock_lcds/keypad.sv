@@ -130,7 +130,7 @@ module keypad
                  8'h2D: keys[16] <= ~_release_;    //  R RUN
                  8'h3A: keys[17] <= ~_release_;    //  M MEM
                  8'h33: keys[18] <= ~_release_;    //  H HALT
-                 8'h44: keys[19] <= ~_release_;    //  I INIT
+                 8'h43: keys[19] <= ~_release_;    //  I INIT
                endcase
             end
          end
