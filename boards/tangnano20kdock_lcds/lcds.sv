@@ -233,7 +233,7 @@ module lcds
       .clken(mhz1_clken),
       .reset(~cpu_rst_n),
       .wr(disp_wr),
-      .mask({2'b00, cpu_addr[5:0]}),
+      .mask({1'b0, cpu_addr[5:2], 1'b0, cpu_addr[1:0]}),
       .data(disp_data),
       .tm1638_clk(tm1638_clk),
       .tm1638_stb(tm1638_stb),
