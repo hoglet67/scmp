@@ -25,14 +25,15 @@ module debug
    output        BAEN_n
    );
 
-   logic              debug_address_enable = 1'b1;
-   logic              in_debug;
-   logic              sync_latch;
-   logic [4:0]        debug_counter;
-   logic [7:0]        debug_data;
-   logic              debug_y7;
-   logic              debug_y8;
-   logic [15:0]       debug_addr;
+   logic         BUSREQ_n_last;
+   logic         debug_address_enable = 1'b1;
+   logic         in_debug;
+   logic         sync_latch;
+   logic [4:0]   debug_counter;
+   logic [7:0]   debug_data;
+   logic         debug_y7;
+   logic         debug_y8;
+   logic [15:0]  debug_addr;
 
    // See page 5-23 of the SC/MP LCDS Users Manual (4200105A)
    logic [7:0]        debug_prom[0:31];
@@ -81,20 +82,30 @@ module debug
 
    assign mem_addr = debug_address_enable ? debug_addr : cpu_addr;
 
+   logic di7_held;
+
+   always@(posedge clk) begin
+      BUSREQ_n_last <= BUSREQ_n;
+      if (!ADS_n)
+        di7_held <= data[7];
+   end
+
    // Debug multiplexor control (address jamming)
    always@(posedge clk) begin
-      if (!RST_n || (!ADS_n && data[7])) begin
+      if (!RST_n || (di7_held)) begin
          debug_address_enable <= 1'b1;
-      end else if (!ADS_n && debug_y7) begin
+      end else if (BUSREQ_n && debug_y7) begin
          debug_address_enable <= 1'b0;
       end
    end
 
    // Debug counter control
    always@(posedge clk) begin
-      if (!RST_n || (!ADS_n && debug_y8)) begin
+      if (!RST_n || (BUSREQ_n && debug_y8)) begin
+         // Cleared on the reset and when BUSREQ released
          debug_counter <= 5'b00000;
-      end else if (!ADS_n && debug_address_enable) begin
+      end else if (!BUSREQ_n && BUSREQ_n_last && debug_address_enable) begin
+         // Incremented on the leading edge of BUSREQ
          debug_counter <= debug_counter + 1'b1;
       end
    end
