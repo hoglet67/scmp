@@ -6,6 +6,7 @@
     <Device name="GW2AR-18C" pn="GW2AR-LV18QN88C8/I7">gw2ar18c-000</Device>
     <FileList>
         <File path="keypad.sv" type="file.verilog" enable="1"/>
+        <File path="debug.sv" type="file.verilog" enable="1"/>
         <File path="lcds.sv" type="file.verilog" enable="1"/>
         <File path="ps2_intf.sv" type="file.verilog" enable="1"/>
         <File path="tm1638.sv" type="file.verilog" enable="1"/>

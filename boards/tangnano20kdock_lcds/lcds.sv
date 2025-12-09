@@ -35,6 +35,7 @@ module lcds
    logic              cpu_f1;
    logic              cpu_f2;
 
+   logic              cpu_BUSREQ_n;
    logic              cpu_ADS_n;
    logic              cpu_RD_n;
    logic              cpu_WR_n;
@@ -45,6 +46,8 @@ module lcds
    logic              powerup_rst_n = 1'b0;
    logic              cpu_rst_n = 1'b0;
    logic [15:0]       reset_counter = 16'h0000;
+
+   logic [15:0]       mem_addr;
 
    logic              ext_ram_enable;
    logic              ext_ram_wr;
@@ -65,6 +68,12 @@ module lcds
    logic              mhz1_clken;
    logic [1:0]        mhz1_counter = 2'b00;
 
+   // Status flags
+   logic   flag_h;
+   logic   flag_d;
+   logic   flag_i;
+   logic   flag_r;
+
    // Joystick / Config Shift Register
    logic [4:0]        joystick1 = 5'b11111;
    logic [4:0]        joystick2 = 5'b11111;
@@ -72,8 +81,19 @@ module lcds
    logic [3:0]        sr_counter = 4'b0000;
    logic [15:0]       sr_mirror = 16'h0000;
 
+   logic              halt_mode_toggle;
+   logic              halt_inst_toggle;
+   logic              run_mode_toggle;
+
    logic              init_sw;
    logic              halt_sw;
+
+
+   always_ff@(posedge ram_clk)
+     begin
+        if (!cpu_ADS_n)
+          cpu_addr_latched <= cpu_D_o[3:0];
+     end
 
    // Memory Map
    // 0000-6FFF not used
@@ -88,29 +108,49 @@ module lcds
 
    initial begin
       // Until we have debug logic, hack in a JMP to 7809
-      ext_ram[0] = 8'h08;
-      ext_ram[1] = 8'hC4;
-      ext_ram[2] = 8'h08;
-      ext_ram[3] = 8'h33;
-      ext_ram[4] = 8'hC4;
-      ext_ram[5] = 8'h78;
-      ext_ram[6] = 8'h37;
-      ext_ram[7] = 8'h3F;
+      // ext_ram[0] = 8'h08;
+      // ext_ram[1] = 8'hC4;
+      // ext_ram[2] = 8'h08;
+      // ext_ram[3] = 8'h33;
+      // ext_ram[4] = 8'hC4;
+      // ext_ram[5] = 8'h78;
+      // ext_ram[6] = 8'h37;
+      // ext_ram[7] = 8'h3F;
       $readmemh("LCDS-8H-d9315a88.mi", ext_ram, 'h7800);
       $readmemh("LCDS-8G-4d8f5f97.mi", ext_ram, 'h7A00);
       $readmemh("LCDS-8F-928b121a.mi", ext_ram, 'h7C00);
       $readmemh("LCDS-8E-eb321eb2.mi", ext_ram, 'h7E00);
+      // Test program
+      ext_ram['h7700] = 8'hC4;
+      ext_ram['h7701] = 8'hA5;
+      ext_ram['h7702] = 8'hC4;
+      ext_ram['h7703] = 8'hA6;
+      ext_ram['h7704] = 8'hC4;
+      ext_ram['h7705] = 8'hA7;
+      ext_ram['h7706] = 8'hC4;
+      ext_ram['h7707] = 8'hA8;
+      ext_ram['h7708] = 8'h00;
+      ext_ram['h7709] = 8'hC4;
+      ext_ram['h770A] = 8'hA9;
+      ext_ram['h770B] = 8'hC4;
+      ext_ram['h770C] = 8'hAA;
+      ext_ram['h770D] = 8'h00;
+      ext_ram['h770E] = 8'h08;
+      // Hack to inject an halt early on
+      // ext_ram['h7816] = 8'h00;
    end
 
+   // Address decoding
    always_comb begin
       ext_ram_enable = 1'b1;
-      ext_ram_wr     = (cpu_addr_latched != 4'h7) || ({cpu_addr_latched, cpu_addr[11:8]} == 8'h77);
-      ext_ram_addr   = {cpu_addr_latched, cpu_addr};
-      key_enable     = {cpu_addr_latched, cpu_addr[11:8]} == 8'h70;
+      ext_ram_wr     = (mem_addr[15:12] != 4'h7) || (mem_addr[15:8] == 8'h77);
+      ext_ram_addr   = mem_addr;
+      key_enable     = (mem_addr[15:8] == 8'h70);
       disp_wr        = !cpu_WR_n & key_enable;
       disp_data      = {1'b1, cpu_D_o[6:0]};
    end
 
+   // RAM/ROM
    always_ff@(posedge ram_clk)
      begin
         ext_ram_D_Q <= ext_ram[ext_ram_addr];
@@ -118,6 +158,7 @@ module lcds
           ext_ram[ext_ram_addr] <= cpu_D_o;
      end
 
+   // CPU data in multiplexor
    always_comb begin
       if (!cpu_RD_n)
         if (key_enable)
@@ -130,8 +171,7 @@ module lcds
         cpu_D_i <= 8'bZZZZZZZZ;
    end
 
-   assign ser_tx = !cpu_f0;
-
+   // Reset generator
    always_ff@(posedge cpu_clk)
      begin
         if (btn1)
@@ -144,6 +184,53 @@ module lcds
         cpu_sa_i <= 1'b0;
      end
 
+   // This should come from the CPU, for now fake it
+   logic [1:0] state = 2'b00;
+
+   always_ff@(posedge cpu_clk)
+     begin
+        case (state)
+          2'b00:
+            if (!cpu_ADS_n)
+              state <= 2'b01;
+          2'b01:
+            if (!cpu_RD_n || !cpu_WR_n)
+              state <= 2'b11;
+          2'b11:
+            if (cpu_RD_n && cpu_WR_n)
+              state <= 2'b00;
+          2'b10:
+            state <= 2'b00;
+        endcase
+     end
+
+   assign cpu_BUSREQ_n = !(!cpu_ADS_n || state[0]);
+
+   debug debug
+     (
+      // control inputs
+      .clk(cpu_clk),
+      .RST_n(cpu_rst_n),
+      .ADS_n(cpu_ADS_n),
+      .BUSREQ_n(cpu_BUSREQ_n),
+      .DEBUG_n(1'b1),
+      // data bus
+      .data(cpu_D_o),
+      // toggle switches
+      .halt_inst_toggle(halt_inst_toggle),
+      .run_mode_toggle(run_mode_toggle),
+      // push switches
+      .init_sw(init_sw),
+      .halt_sw(halt_sw),
+      // address busses
+      .cpu_addr({cpu_addr_latched, cpu_addr}),
+      .mem_addr(mem_addr),
+      // control outputs
+      .INDBG_n(),
+      .BAEN_n()
+   );
+
+   // CPU
    scmp cpu
      (
       .rst_n(cpu_rst_n),
@@ -164,17 +251,7 @@ module lcds
       .WR_n(cpu_WR_n)
       );
 
-
-   always_ff@(posedge ram_clk)
-     begin
-        if (!cpu_ADS_n)
-          cpu_addr_latched <= cpu_D_o[3:0];
-     end
-
-   logic   flag_h;
-   logic   flag_d;
-   logic   flag_i;
-   logic   flag_r;
+   assign ser_tx = !cpu_f0;
 
    always@(posedge cpu_clk) begin
       if (!cpu_rst_n)
@@ -183,6 +260,7 @@ module lcds
         { flag_h, flag_d, flag_i, flag_r } <= cpu_D_o[7:4];
    end
 
+   // Clock PLL
    rPLL
      #(
         .FCLKIN("27"),
@@ -211,22 +289,20 @@ module lcds
       );
 
    // Keypad
-
    keypad keypad
      (
       .clk(sys_clk),
       .reset(!powerup_rst_n),
       .ps2_clk(ps2_clk),
       .ps2_data(ps2_data),
-      .col(cpu_addr[4:0]),
-      .halt_mode(halt_mode),
+      .col(mem_addr[4:0]),
+      .halt_mode(halt_mode_toggle),
       .row(key_data),
       .halt_sw(halt_sw),
       .init_sw(init_sw)
       );
 
    // Display
-
    always@(posedge cpu_clk) begin
       mhz1_counter <= mhz1_counter + 1'b1;
       mhz1_clken <= &mhz1_counter;
@@ -238,7 +314,7 @@ module lcds
       .clken(mhz1_clken),
       .reset(!powerup_rst_n),
       .wr(disp_wr),
-      .mask({1'b0, cpu_addr[5:2], 1'b0, cpu_addr[1:0]}),
+      .mask({1'b0, mem_addr[5:2], 1'b0, mem_addr[1:0]}),
       .data(disp_data),
       .tm1638_clk(tm1638_clk),
       .tm1638_stb(tm1638_stb),
@@ -247,7 +323,6 @@ module lcds
 
 
    // DIP Switches
-
    always@(negedge cpu_clk) begin
       // external 74LV165A clocked on rising edge, so work here on falling edge
       js_load_n <= !(sr_counter == 4'b1111);
@@ -260,9 +335,17 @@ module lcds
       sr_counter <= sr_counter + 1'b1;
     end
 
-   assign halt_mode = jumper[0];
-   assign halt_inst = jumper[1];
-   assign run_mode  = jumper[2];
+   // Halt mode (0 = Panel, 1 = tty)
+   // Controls whether user input is via the Front Panel or Teletype
+   assign halt_mode_toggle = jumper[0];
+
+   // Halt inst (0 = Debug, 1 = Pulse)
+   // Controls what the HALT instruction does in run mode
+   assign halt_inst_toggle = jumper[1];
+
+   // Run Mode (0 = Step, 1 = Continuous)
+   // Controls how many instructions are executed in run mode
+   assign run_mode_toggle  = jumper[2];
 
    // For instruction tracing
    assign js_clk = cpu_clk;
@@ -279,6 +362,6 @@ module lcds
 
    // assign led_n = { cpu_rst_n, cpu_sb_i, cpu_sa_i, 1'b0, cpu_ADS_n, cpu_WR_n};
 
-   assign led_n = { tm1638_dio, tm1638_clk, tm1638_stb, halt_mode, cpu_ADS_n, cpu_WR_n};
+   assign led_n = { tm1638_dio, tm1638_clk, tm1638_stb, 1'b0, cpu_ADS_n, cpu_WR_n};
 
 endmodule

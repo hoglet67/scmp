@@ -79,7 +79,7 @@ module keypad
 
          _release_ <= 1'b0;
          extended <= 1'b0;
-         keys <= 20'h000000;
+         keys <= 20'h00000;
 
       end else  begin
 

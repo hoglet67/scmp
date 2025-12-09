@@ -1,21 +1,47 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Sun Oct 26 09:45:39 2025
+[*] Tue Dec  9 15:16:19 2025
 [*]
-[dumpfile] "/home/dmb/git/hoglet67/scmp/boards/tangnano20kdock/dump.vcd"
-[dumpfile_mtime] "Sun Oct 26 09:44:20 2025"
-[dumpfile_size] 809350
-[savefile] "/home/dmb/git/hoglet67/scmp/boards/tangnano20kdock/tangnano20kdock.gtkw"
-[timestart] 0
-[size] 1000 600
-[pos] -1 -1
-*-23.100000 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
-[treeopen] tb_tangnano20kdock.
+[dumpfile] "/home/dmb/git/hoglet67/scmp/boards/tangnano20kdock_lcds/dump.vcd"
+[dumpfile_mtime] "Tue Dec  9 15:11:40 2025"
+[dumpfile_size] 21639585
+[savefile] "/home/dmb/git/hoglet67/scmp/boards/tangnano20kdock_lcds/lcds.gtkw"
+[timestart] 32452000
+[size] 1854 1121
+[pos] -27 -24
+*-17.406427 32996375 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_tangnano20kdock_lcds.
+[treeopen] tb_tangnano20kdock_lcds.dut.
 [sst_width] 284
-[signals_width] 78
+[signals_width] 312
 [sst_expanded] 1
-[sst_vpaned_height] 171
+[sst_vpaned_height] 370
 @28
-tb_tangnano20kdock.ser_tx
+tb_tangnano20kdock_lcds.dut.debug.ADS_n
+tb_tangnano20kdock_lcds.dut.debug.BAEN
+tb_tangnano20kdock_lcds.dut.debug.BUSREQ_n
+tb_tangnano20kdock_lcds.dut.debug.DEBUG_n
+tb_tangnano20kdock_lcds.dut.debug.INDBG
+tb_tangnano20kdock_lcds.dut.debug.RST_n
+tb_tangnano20kdock_lcds.dut.debug.clk
+@22
+tb_tangnano20kdock_lcds.dut.debug.cpu_addr[15:0]
+tb_tangnano20kdock_lcds.dut.debug.data[7:0]
+tb_tangnano20kdock_lcds.dut.debug.debug_addr[15:0]
+@28
+tb_tangnano20kdock_lcds.dut.debug.debug_address_enable
+@22
+tb_tangnano20kdock_lcds.dut.debug.debug_counter[4:0]
+tb_tangnano20kdock_lcds.dut.debug.debug_data[7:0]
+@28
+tb_tangnano20kdock_lcds.dut.debug.debug_y7
+tb_tangnano20kdock_lcds.dut.debug.debug_y8
+tb_tangnano20kdock_lcds.dut.debug.halt_inst_toggle
+tb_tangnano20kdock_lcds.dut.debug.halt_sw
+tb_tangnano20kdock_lcds.dut.debug.init_sw
+@22
+tb_tangnano20kdock_lcds.dut.debug.mem_addr[15:0]
+@28
+tb_tangnano20kdock_lcds.dut.debug.run_mode_toggle
 [pattern_trace] 1
 [pattern_trace] 0
