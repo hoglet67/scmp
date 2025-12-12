@@ -15,8 +15,8 @@ module debug
    input         halt_inst_toggle,
    input         run_mode_toggle,
    // push switches
-   input         init_sw,
-   input         halt_sw,
+   input         init_sw, // Active high
+   input         halt_sw, // Active high
    // address busses
    input [15:0]  cpu_addr,
    output [15:0] mem_addr,
@@ -25,10 +25,15 @@ module debug
    output        BAEN_n
    );
 
+   logic         halt_sw_debounced;
+   logic         trig_halt_inst;
+   logic         trig_halt_sw;
+   logic         trig_halt;
+   logic         trig_sync;
+
    logic         BUSREQ_n_last;
    logic         debug_address_enable = 1'b1;
    logic         in_debug;
-   logic         sync_latch;
    logic [4:0]   debug_counter;
    logic [7:0]   debug_data;
    logic         debug_y7;
@@ -82,29 +87,77 @@ module debug
 
    assign mem_addr = debug_address_enable ? debug_addr : cpu_addr;
 
-   logic di7_held;
-
+   // Halt switch bebouncing (and synchroniziation)
    always@(posedge clk) begin
-      BUSREQ_n_last <= BUSREQ_n;
-      if (!ADS_n)
-        di7_held <= data[7];
+      if (halt_sw || !run_mode_toggle)
+        halt_sw_debounced <= 1'b1;
+      else if (debug_address_enable)
+        halt_sw_debounced <= 1'b0;
    end
+
+   // DFF 8B - halt switch trigger
+   // in debug mode:
+   //    ignore the halt switch
+   // in run mode:
+   //    trigger when halt switch depressed (=0) or when the run mode
+   //    toggle switch is set to step (=0).
+   //
+   // Note: when single stepping, the !ADS_n term introduces
+   // delay. Without this, debug mode is re-entered immediately,
+   // preventing any forward progress. In the original curcuit the is
+   // achived by clocking DFF 8B off the trailing edge of ADS_n.
+   always@(posedge clk) begin
+      if (!RST_n)
+        trig_halt_sw <= 1'b0;
+      else if (!ADS_n)
+        trig_halt_sw <= !in_debug && (!DEBUG_n || halt_sw_debounced);
+   end
+
+   // SR latch 9B - halt instruction trigger
+   // in debug mode:
+   //    trigger on all halt instruction
+   //    (this will be the halt that starts the return sequence)
+   // in run mode:
+   //    trigger on trigger on halt instructions when the halt inst
+   //    toggle switch is in the DEBUG setting (=0)
+   always@(posedge clk) begin
+      if (!RST_n || debug_address_enable)
+        trig_halt_inst <= 1'b0;
+      else if (!ADS_n && data[7] && (!halt_inst_toggle || in_debug))
+        trig_halt_inst <= 1'b1;
+   end
+
+   // The two halt triggers are logically ORed together (6B)
+   assign trig_halt = trig_halt_sw || trig_halt_inst;
+
+   // Synchronize the trigger to the next instruction fetch
+   assign trig_sync = trig_halt && !ADS_n && data[5];
 
    // Debug multiplexor control (address jamming)
    always@(posedge clk) begin
-      if (!RST_n || (di7_held)) begin
+      if (!RST_n || trig_sync) begin
          debug_address_enable <= 1'b1;
       end else if (BUSREQ_n && debug_y7) begin
          debug_address_enable <= 1'b0;
       end
    end
 
+   // Debug mode / Run mode state
+   always@(posedge clk) begin
+      if (!RST_n || trig_sync) begin
+         in_debug <= 1'b1;
+      end else if (BUSREQ_n && debug_y8) begin
+         in_debug <= 1'b0;
+      end
+   end
+
    // Debug counter control
    always@(posedge clk) begin
+      BUSREQ_n_last <= BUSREQ_n;
       if (!RST_n || (BUSREQ_n && debug_y8)) begin
          // Cleared on the reset and when BUSREQ released
          debug_counter <= 5'b00000;
-      end else if (!BUSREQ_n && BUSREQ_n_last && debug_address_enable) begin
+      end else if (!BUSREQ_n && BUSREQ_n_last && debug_address_enable || trig_sync) begin
          // Incremented on the leading edge of BUSREQ
          debug_counter <= debug_counter + 1'b1;
       end

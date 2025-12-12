@@ -134,8 +134,21 @@ module lcds
       ext_ram['h770A] = 8'hA9;
       ext_ram['h770B] = 8'hC4;
       ext_ram['h770C] = 8'hAA;
-      ext_ram['h770D] = 8'h00;
-      ext_ram['h770E] = 8'h08;
+      ext_ram['h770D] = 8'hC4;
+      ext_ram['h770E] = 8'hAB;
+      ext_ram['h770F] = 8'hC4;
+      ext_ram['h7710] = 8'hAC;
+      ext_ram['h7711] = 8'h08;
+      ext_ram['h7712] = 8'h08;
+      ext_ram['h7713] = 8'h08;
+      ext_ram['h7714] = 8'h08;
+      ext_ram['h7715] = 8'h08;
+      ext_ram['h7716] = 8'h08;
+      ext_ram['h7717] = 8'h08;
+      ext_ram['h7718] = 8'h08;
+      ext_ram['h7719] = 8'h90;
+      ext_ram['h771A] = 8'hFE;
+
       // Hack to inject an halt early on
       // ext_ram['h7816] = 8'h00;
    end
